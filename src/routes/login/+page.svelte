@@ -6,19 +6,14 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Alert from '$lib/components/ui/alert';
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
-
-	import { onMount } from 'svelte';
-	import { register, login, logout } from '$lib/api/auth';
+	import { register, login } from '$lib/api/auth';
 	import { goto } from '$app/navigation';
 
-
 	let selectedTab: 'login' | 'register' = 'login';
-
 
 	let username = '';
 	let password = '';
 	let confirmPassword = '';
-
 
 	let error = '';
 
@@ -54,26 +49,7 @@
 		} catch (e) {
 			error = (e as Error).message;
 		}
-
 	}
-	function keyHandler(event: KeyboardEvent) {
-		error = '';
-		if (event.key === 'Enter') {
-			if (selectedTab === 'login') {
-				handleLogin();
-			} else if (selectedTab === 'register') {
-				handleRegister();
-			}
-		}
-	}
-	onMount(() => {
-		document.addEventListener('keydown', keyHandler);
-
-		// Cleanup the event listener when the component is destroyed
-		return () => {
-			document.removeEventListener('keydown', keyHandler);
-		};
-	});
 </script>
 
 <div class="center-container">
@@ -92,19 +68,26 @@
 							<Card.Title>Login</Card.Title>
 							<Card.Description>Provide your credentials below and click Login.</Card.Description>
 						</Card.Header>
-						<Card.Content class="space-y-2">
-							<div class="space-y-1">
-								<Label for="username">Username</Label>
-								<Input id="username" bind:value={username} placeholder="username" />
-							</div>
-							<div class="space-y-1">
-								<Label for="password">Password</Label>
-								<Input id="password" type="password" bind:value={password} placeholder="password" />
-							</div>
-						</Card.Content>
-						<Card.Footer>
-							<Button on:click={handleLogin}>Login</Button>
-						</Card.Footer>
+						<form on:submit={handleLogin}>
+							<Card.Content class="space-y-2">
+								<div class="space-y-1">
+									<Label for="username">Username</Label>
+									<Input id="username" bind:value={username} placeholder="username" />
+								</div>
+								<div class="space-y-1">
+									<Label for="password">Password</Label>
+									<Input
+										id="password"
+										type="password"
+										bind:value={password}
+										placeholder="password"
+									/>
+								</div>
+							</Card.Content>
+							<Card.Footer>
+								<Button type="submit">Login</Button>
+							</Card.Footer>
+						</form>
 					</Card.Root>
 				</Tabs.Content>
 				<Tabs.Content value="register">
@@ -116,28 +99,35 @@
 								click Register.
 							</Card.Description>
 						</Card.Header>
-						<Card.Content class="space-y-2">
-							<div class="space-y-1">
-								<Label for="register-username">username</Label>
-								<Input id="register-username" bind:value={username} placeholder="username" />
-							</div>
-							<div class="space-y-1">
-								<Label for="register-password">Password</Label>
-								<Input id="register-password" bind:value={password} type="password" placeholder="password" />
-							</div>
-							<div class="space-y-1">
-								<Label for="confirm-password">confirm password</Label>
-								<Input
-									id="confirm-password"
-									bind:value={confirmPassword}
-									type="password"
-									placeholder="confirm password"
-								/>
-							</div>
-						</Card.Content>
-						<Card.Footer>
-							<Button on:click={handleRegister}>Register</Button>
-						</Card.Footer>
+						<form on:submit={handleRegister}>
+							<Card.Content class="space-y-2">
+								<div class="space-y-1">
+									<Label for="register-username">username</Label>
+									<Input id="register-username" bind:value={username} placeholder="username" />
+								</div>
+								<div class="space-y-1">
+									<Label for="register-password">Password</Label>
+									<Input
+										id="register-password"
+										bind:value={password}
+										type="password"
+										placeholder="password"
+									/>
+								</div>
+								<div class="space-y-1">
+									<Label for="confirm-password">confirm password</Label>
+									<Input
+										id="confirm-password"
+										bind:value={confirmPassword}
+										type="password"
+										placeholder="confirm password"
+									/>
+								</div>
+							</Card.Content>
+							<Card.Footer>
+								<Button type="submit">Register</Button>
+							</Card.Footer>
+						</form>
 					</Card.Root>
 				</Tabs.Content>
 			</Tabs.Root>
