@@ -12,17 +12,17 @@
 	import { goto } from '$app/navigation';
 
 
-	let selected_tab: 'login' | 'register' = 'login';
+	let selectedTab: 'login' | 'register' = 'login';
 
 
 	let username = '';
 	let password = '';
-	let confirm_password = '';
+	let confirmPassword = '';
 
 
 	let error = '';
 
-	async function handle_login() {
+	async function handleLogin() {
 		console.log(error);
 		if (!username || !password) {
 			error = 'Please provide email and password';
@@ -30,48 +30,48 @@
 		}
 
 		try {
-			login(username, password);
+			await login(username, password);
+			goto('/');
 		} catch (e) {
 			error = (e as Error).message;
 			console.log(error);
 		}
-		goto('/');
 	}
 
-	async function handle_register() {
-		if (!username || !password || !confirm_password) {
+	async function handleRegister() {
+		if (!username || !password || !confirmPassword) {
 			error = 'Please provide all fields';
 			return;
 		}
-		if (password !== confirm_password) {
+		if (password !== confirmPassword) {
 			error = 'Passwords do not match';
 			return;
 		}
 
 		try {
 			await register(username, password);
-			handle_login();
+			handleLogin();
 		} catch (e) {
 			error = (e as Error).message;
 		}
 
 	}
-	function key_handler(event: KeyboardEvent) {
+	function keyHandler(event: KeyboardEvent) {
 		error = '';
 		if (event.key === 'Enter') {
-			if (selected_tab === 'login') {
-				handle_login();
-			} else if (selected_tab === 'register') {
-				handle_register();
+			if (selectedTab === 'login') {
+				handleLogin();
+			} else if (selectedTab === 'register') {
+				handleRegister();
 			}
 		}
 	}
 	onMount(() => {
-		document.addEventListener('keydown', key_handler);
+		document.addEventListener('keydown', keyHandler);
 
 		// Cleanup the event listener when the component is destroyed
 		return () => {
-			document.removeEventListener('keydown', key_handler);
+			document.removeEventListener('keydown', keyHandler);
 		};
 	});
 </script>
@@ -81,7 +81,7 @@
 		<!-- Tabs Container -->
 		<div class="mb-8">
 			<!-- Add margin-bottom to create space for the Alert -->
-			<Tabs.Root bind:value={selected_tab}>
+			<Tabs.Root bind:value={selectedTab}>
 				<Tabs.List class="grid w-full grid-cols-2">
 					<Tabs.Trigger value="login">Login</Tabs.Trigger>
 					<Tabs.Trigger value="register">Register</Tabs.Trigger>
@@ -103,7 +103,7 @@
 							</div>
 						</Card.Content>
 						<Card.Footer>
-							<Button on:click={handle_login}>Login</Button>
+							<Button on:click={handleLogin}>Login</Button>
 						</Card.Footer>
 					</Card.Root>
 				</Tabs.Content>
@@ -129,14 +129,14 @@
 								<Label for="confirm-password">confirm password</Label>
 								<Input
 									id="confirm-password"
-									bind:value={confirm_password}
+									bind:value={confirmPassword}
 									type="password"
 									placeholder="confirm password"
 								/>
 							</div>
 						</Card.Content>
 						<Card.Footer>
-							<Button on:click={handle_register}>Register</Button>
+							<Button on:click={handleRegister}>Register</Button>
 						</Card.Footer>
 					</Card.Root>
 				</Tabs.Content>
