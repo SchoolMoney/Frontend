@@ -30,6 +30,8 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import { logout } from '$lib/api/auth';
+	import { goto } from '$app/navigation';
 </script>
 
 <div class="flex min-h-screen w-full flex-col bg-muted/40">
@@ -231,7 +233,7 @@
 					<DropdownMenu.Item>Settings</DropdownMenu.Item>
 					<DropdownMenu.Item>Support</DropdownMenu.Item>
 					<DropdownMenu.Separator />
-					<DropdownMenu.Item>Logout</DropdownMenu.Item>
+					<DropdownMenu.Item on:click={()=>{logout(); goto('/login')}}>Logout</DropdownMenu.Item>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 		</header>
