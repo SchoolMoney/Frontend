@@ -8,6 +8,7 @@
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
 	import { register, login } from '$lib/api/auth';
 	import { goto } from '$app/navigation';
+  import { appName } from '../../config';
 
 	let selectedTab: 'login' | 'register' = 'login';
 
@@ -59,14 +60,14 @@
 			<!-- Add margin-bottom to create space for the Alert -->
 			<Tabs.Root bind:value={selectedTab}>
 				<Tabs.List class="grid w-full grid-cols-2">
-					<Tabs.Trigger value="login">Login</Tabs.Trigger>
-					<Tabs.Trigger value="register">Register</Tabs.Trigger>
+					<Tabs.Trigger class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background" value="login">Login</Tabs.Trigger>
+					<Tabs.Trigger class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background" value="register">Register</Tabs.Trigger>
 				</Tabs.List>
 				<Tabs.Content value="login" id="tabs-content">
 					<Card.Root>
-						<Card.Header>
-							<Card.Title>Login</Card.Title>
-							<Card.Description>Provide your credentials below and click Login.</Card.Description>
+						<Card.Header class="text-center">
+							<Card.Title>{appName}</Card.Title>
+							<Card.Description>Welcome back!</Card.Description>
 						</Card.Header>
 						<form on:submit={handleLogin}>
 							<Card.Content class="space-y-2">
@@ -85,24 +86,21 @@
 								</div>
 							</Card.Content>
 							<Card.Footer>
-								<Button type="submit">Login</Button>
+								<Button class="ms-auto" type="submit">Login</Button>
 							</Card.Footer>
 						</form>
 					</Card.Root>
 				</Tabs.Content>
 				<Tabs.Content value="register">
 					<Card.Root>
-						<Card.Header>
-							<Card.Title>Create new account</Card.Title>
-							<Card.Description>
-								If you do not have an account yet, please provide your username, password below and
-								click Register.
-							</Card.Description>
+						<Card.Header class="text-center">
+							<Card.Title>{appName}</Card.Title>
+							<Card.Description>Create new account</Card.Description>
 						</Card.Header>
 						<form on:submit={handleRegister}>
 							<Card.Content class="space-y-2">
 								<div class="space-y-1">
-									<Label for="register-username">username</Label>
+									<Label for="register-username">Username</Label>
 									<Input id="register-username" bind:value={username} placeholder="username" />
 								</div>
 								<div class="space-y-1">
@@ -115,7 +113,7 @@
 									/>
 								</div>
 								<div class="space-y-1">
-									<Label for="confirm-password">confirm password</Label>
+									<Label for="confirm-password">Confirm password</Label>
 									<Input
 										id="confirm-password"
 										bind:value={confirmPassword}
@@ -125,7 +123,7 @@
 								</div>
 							</Card.Content>
 							<Card.Footer>
-								<Button type="submit">Register</Button>
+								<Button class="ms-auto" type="submit">Register</Button>
 							</Card.Footer>
 						</form>
 					</Card.Root>

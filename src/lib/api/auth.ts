@@ -1,14 +1,45 @@
 import { Token } from '$lib/models/auth';
+import { jwtDecode } from 'jwt-decode';
 
 const TOKEN_KEY = 'access-token';
 const API_URL = 'http://localhost:8000';
 
+export enum Privilege {
+  STANDARD_USER = 1,
+  ADMIN_USER = 10,
+}
+
+export enum Status {
+  DISABLED = 0,
+  LOCKED = 1,
+  ENABLED = 10,
+}
+
+export type Session = {
+  user_id: number;
+  username: string;
+  email?: string;
+  privilege: Privilege;
+  status: Status;
+};
+
 export function getToken() {
 	return localStorage.getItem(TOKEN_KEY);
 }
+
+export function decodeToken(): Session {
+  const token = getToken();
+  return jwtDecode(token!) as Session;
+}
+
+export function getSessionData(): Session {
+  return decodeToken();
+}
+
 export function removeToken() {
     localStorage.removeItem(TOKEN_KEY);
 }
+
 function setToken(token: string) {
 	localStorage.setItem(TOKEN_KEY, token);
 }
