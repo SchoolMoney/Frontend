@@ -2,6 +2,10 @@
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
+## Prerequisites
+* [nvm](https://github.com/nvm-sh/nvm) (optional),
+* [node.js:23.7.0](https://nodejs.org/en/blog/release/v23.7.0)
+
 ## Creating a project
 
 If you're seeing this, you've probably already done this step. Congrats!
