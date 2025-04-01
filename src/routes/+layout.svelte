@@ -6,6 +6,7 @@
 	import School from 'lucide-svelte/icons/school';
 	import Baby from 'lucide-svelte/icons/baby';
 	import Files from 'lucide-svelte/icons/files';
+	import MessageCircle from 'lucide-svelte/icons/message-circle';
 	import ShieldUser from 'lucide-svelte/icons/shield-user';
 
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -81,6 +82,20 @@
 				</Tooltip.Trigger>
 				<Tooltip.Content side="right">Reports</Tooltip.Content>
 			</Tooltip.Root>
+			<Tooltip.Root>
+				<Tooltip.Trigger asChild let:builder>
+					<a
+						href="chat"
+						class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+						use:builder.action
+						{...builder}
+					>
+						<MessageCircle class="h-5 w-5" />
+						<span class="sr-only">Chat</span>
+					</a>
+				</Tooltip.Trigger>
+				<Tooltip.Content side="right">Chat</Tooltip.Content>
+			</Tooltip.Root>
 		</nav>
     {#if isAdmin}
 		<nav class="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
@@ -141,6 +156,13 @@
 						>
               <Files class="h-5 w-5" />
 							Reports
+						</a>
+						<a
+							href="chat"
+							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+						>
+              <MessageCircle class="h-5 w-5" />
+							Chat
 						</a>
             {#if isAdmin}
               <a
