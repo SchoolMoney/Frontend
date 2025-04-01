@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { page } from '$app/state';
 
 	import PanelLeft from 'lucide-svelte/icons/panel-left';
 	import HandCoins from 'lucide-svelte/icons/hand-coins';
@@ -21,6 +22,8 @@
   onMount(() => {
     isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
   });
+
+  const activeTabClasses: string = 'group bg-primary text-lg font-semibold text-primary-foreground md:text-base gap-2 hover:text-background hover:text-opacity-75';
 </script>
 
 <div class="flex min-h-screen w-full flex-col bg-muted/40">
@@ -30,7 +33,7 @@
 				<Tooltip.Trigger asChild let:builder>
 					<a
 						href="collections"
-            class="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname === '/collections') ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
 					>
@@ -44,7 +47,7 @@
 				<Tooltip.Trigger asChild let:builder>
 					<a
 						href="classes"
-						class="flex h-9 w-9 items-center justify-center rounded-lg text-accent-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname === '/classes') ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
 					>
@@ -58,7 +61,7 @@
 				<Tooltip.Trigger asChild let:builder>
 					<a
 						href="children"
-						class="flex h-9 w-9 items-center justify-center rounded-lg text-accent-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname === '/children') ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
 					>
@@ -72,7 +75,7 @@
 				<Tooltip.Trigger asChild let:builder>
 					<a
 						href="reports"
-						class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname === '/reports') ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
 					>
@@ -86,7 +89,7 @@
 				<Tooltip.Trigger asChild let:builder>
 					<a
 						href="chat"
-						class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname === '/chat') ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
 					>
@@ -103,7 +106,7 @@
 				<Tooltip.Trigger asChild let:builder>
 					<a
 						href="admin"
-						class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname === '/admin') ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
 					>
@@ -131,35 +134,35 @@
 					<nav class="grid gap-6 text-lg font-medium">
 						<a
 							href="collections"
-							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname === '/collections') ? activeTabClasses : ''}"
 						>
 							<HandCoins class="h-5 w-5" />
 							Collections
 						</a>
 						<a
 							href="classes"
-							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname === '/classes') ? activeTabClasses : ''}"
 						>
 							<School class="h-5 w-5" />
 							Classes
 						</a>
 						<a
 							href="children"
-							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname === '/children') ? activeTabClasses : ''}"
 						>
 							<Baby class="h-5 w-5" />
 							Children
 						</a>
 						<a
 							href="reports"
-							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname === '/reports') ? activeTabClasses : ''}"
 						>
               <Files class="h-5 w-5" />
 							Reports
 						</a>
 						<a
 							href="chat"
-							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname === '/chat') ? activeTabClasses : ''}"
 						>
               <MessageCircle class="h-5 w-5" />
 							Chat
@@ -167,7 +170,7 @@
             {#if isAdmin}
               <a
                 href="admin"
-                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname === '/admin') ? activeTabClasses : ''}"
               >
                 <ShieldUser class="h-5 w-5" />
                 Admin panel
