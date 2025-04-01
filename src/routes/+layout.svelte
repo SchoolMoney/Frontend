@@ -23,7 +23,7 @@
     isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
   });
 
-  const activeTabClasses: string = 'group bg-primary text-lg font-semibold text-primary-foreground md:text-base gap-2 hover:text-background hover:text-opacity-75';
+  const activeTabClasses: string = 'group bg-primary text-lg font-semibold text-primary-foreground md:text-base gap-2 hover:!text-background hover:bg-opacity-75 hover:text-opacity-75';
 </script>
 
 <div class="flex min-h-screen w-full flex-col bg-muted/40">
