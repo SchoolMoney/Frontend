@@ -1,4 +1,188 @@
 <script lang="ts">
+	import type { Collection, GetCollectionsParams, Status } from '$lib/models/collection';
+	import { statusLabels } from '$lib/models/collection';
+	import { getCollections } from '$lib/api/collection';
+	import * as Card from '$lib/components/ui/card';
+	import { Label } from '$lib/components/ui/label';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import CircleX from 'lucide-svelte/icons/circle-x';
+	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import * as Calendar from '$lib/components/ui/calendar';
+	import * as Popover from '$lib/components/ui/popover';
+  import * as Select from "$lib/components/ui/select"
+	import { cn } from '$lib/utils';
+  import { parseToDate, parseToShortDate } from '../../../config';
+
+  let collections: Collection[] = [];
+
+  const emptyParams: GetCollectionsParams = {
+    name: '',
+    start_date_from: undefined,
+    start_date_to: undefined,
+    end_date_from: undefined,
+    end_date_to: undefined,
+    status: undefined,
+  };
+
+  let params: GetCollectionsParams = { ...emptyParams };
+
+  $: fetchCollections();
+
+  async function fetchCollections() {
+    try {
+      collections = await getCollections({
+        ...params,
+
+        start_date_from: parseToDate(params.start_date_from),
+        start_date_to: parseToDate(params.start_date_to),
+        
+        end_date_from: parseToDate(params.end_date_from),
+        end_date_to: parseToDate(params.end_date_to),
+      });
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function handleSubmit(event: Event) {
+    event.preventDefault();
+    fetchCollections();
+  }
+
+  function clearFilters() {
+    params = { ...emptyParams };
+  }
 </script>
 
-<div>COLLECTIONS!</div>
+<h1 class="text-center text-4xl w-full">Collections</h1>
+
+<div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
+  <form class="lg:col-start-2 lg:col-end-3 md:col mt-10" on:submit={handleSubmit}>
+    <Card.Content class="grid gap-4 md:gap-8 lg:[repeat(3,1fr)_auto_auto] xl:grid-cols-[repeat(3,1fr)_auto_auto] lg:grid-rows-2 xl:grid-rows-2">
+      <div class="lg:col-start-1 xl:col-end-2">
+        <Label for="name">Name</Label>
+        <Input id="name" bind:value={params.name} placeholder="Name" />
+      </div>
+      <div class="lg:col-start-2 xl:col-end-3">
+        <Label for="start_date_from">Start date from</Label>
+        <Popover.Root>
+          <Popover.Trigger asChild let:builder>
+            <Button
+              variant="outline"
+              class={cn(
+                "w-full justify-start text-left font-normal",
+                !params.start_date_from && "text-muted-foreground"
+              )}
+              builders={[builder]}
+            >
+              <CalendarIcon class="mr-2 h-4 w-4" />
+              {params.start_date_from ? parseToShortDate(params.start_date_from) : "Pick a date"}
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content class="w-auto p-0" align="start">
+            <Calendar.Calendar bind:value={params.start_date_from} />
+          </Popover.Content>
+        </Popover.Root>
+      </div>
+      <div class="lg:col-start-3 xl:col-end-4">
+        <Label for="start_date_to">Start date to</Label>
+        <Popover.Root>
+          <Popover.Trigger asChild let:builder>
+            <Button
+              variant="outline"
+              class={cn(
+                "w-full justify-start text-left font-normal",
+                !params.start_date_from && "text-muted-foreground"
+              )}
+              builders={[builder]}
+            >
+              <CalendarIcon class="mr-2 h-4 w-4" />
+              {params.start_date_to ? parseToShortDate(params.start_date_to) : "Pick a date"}
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content class="w-auto p-0" align="start">
+            <Calendar.Calendar bind:value={params.start_date_to} />
+          </Popover.Content>
+        </Popover.Root>
+      </div>
+      <Button
+        class="bg-transparent hover:bg-secondary text-black mt-auto"
+        on:click={clearFilters}>
+        <CircleX></CircleX>
+      </Button>
+      <Button class="mt-auto" type="submit">Filter</Button>
+
+      <div class="lg:col-start-1 xl:col-end-2 lg:row-start-2 xl:row-end-2">
+        <Label for="status">Status</Label>
+        <Select.Root
+          onSelectedChange={(v) => {
+            v && (params.status = v.value as Status);
+          }}>
+          <Select.Trigger>
+            <Select.Value placeholder="Status" />
+          </Select.Trigger>
+          <Select.Content>
+            {#each statusLabels as [value, label]}
+              <Select.Item value={value}>{label}</Select.Item>
+            {/each}
+          </Select.Content>
+        </Select.Root>
+      </div>
+      <div class="lg:col-start-2 xl:col-end-3 lg:row-start-2 xl:row-end-2">
+        <Label for="end_date_from">End date from</Label>
+        <Popover.Root>
+          <Popover.Trigger asChild let:builder>
+            <Button
+              variant="outline"
+              class={cn(
+                "w-full justify-start text-left font-normal",
+                !params.end_date_from && "text-muted-foreground"
+              )}
+              builders={[builder]}
+            >
+              <CalendarIcon class="mr-2 h-4 w-4" />
+              {params.end_date_from ? parseToShortDate(params.end_date_from) : "Pick a date"}
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content class="w-auto p-0" align="start">
+            <Calendar.Calendar bind:value={params.end_date_from} />
+          </Popover.Content>
+        </Popover.Root>
+      </div>
+      <div class="lg:col-start-3 xl:col-end-4 lg:row-start-2 xl:row-end-2">
+        <Label for="end_date_to">End date to</Label>
+        <Popover.Root>
+          <Popover.Trigger asChild let:builder>
+            <Button
+              variant="outline"
+              class={cn(
+                "w-full justify-start text-left font-normal",
+                !params.end_date_to && "text-muted-foreground"
+              )}
+              builders={[builder]}
+            >
+              <CalendarIcon class="mr-2 h-4 w-4" />
+              {params.end_date_to ? parseToShortDate(params.end_date_to) : "Pick a date"}
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content class="w-auto p-0" align="start">
+            <Calendar.Calendar bind:value={params.end_date_to} />
+          </Popover.Content>
+        </Popover.Root>
+      </div>
+    </Card.Content>
+  </form>
+
+  {#if collections.length > 0}
+    {#each collections as collection}
+      <div class="col">{collection.name}</div>
+      <div class="col">{collection.description}</div>
+      <div class="col">{collection.start_date}</div>
+      <div class="col">{collection.end_date}</div>
+      <div class="col">{collection.status}</div>
+    {/each}
+  {:else}
+    <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-2 col-end-3">No collections found.</div>
+  {/if}
+</div>
