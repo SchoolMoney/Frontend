@@ -11,7 +11,7 @@
 		} else {
 			try {
         await getUserDetails();
-				goto('/collections');
+				goto('main');
 			} catch (e) {
 				console.error(e);
 				removeToken();
