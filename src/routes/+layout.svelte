@@ -18,7 +18,7 @@
 	import { goto } from '$app/navigation';
 
   let isAdmin: boolean = false;
-  
+
   onMount(() => {
     isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
   });
@@ -26,7 +26,7 @@
   const activeTabClasses: string = 'group bg-primary text-lg font-semibold text-primary-foreground md:text-base gap-2 hover:!text-background hover:bg-opacity-75 hover:text-opacity-75';
 </script>
 
-<div class="flex min-h-screen w-full flex-col bg-muted/40">
+<div class="flex w-full flex-col bg-muted/40">
 	<aside class="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
 		<nav class="flex flex-col items-center gap-4 px-2 sm:py-5">
 			<Tooltip.Root>
