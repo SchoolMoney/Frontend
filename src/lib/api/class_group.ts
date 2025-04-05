@@ -20,7 +20,7 @@ export async function get_user_classes_using_JWT() {
 }
 
 export async function get_class_view(class_id: number){
-	const response = await fetch(`${baseApiUrl}/api/class_group/class-view?class_id=${class_id}`, {
+	const response = await fetch(`${baseApiUrl}/api/class_group/class-view?class_group_id=${class_id}`, {
 		method: 'GET',
 		headers: {
 			Authorization: `Bearer ${getToken()}`
