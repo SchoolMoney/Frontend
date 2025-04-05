@@ -50,12 +50,10 @@
 
 	})
 
-	function handleCardClick(id: number) {
-		console.log('Selected class group ID:', id);
+	function handleCardClick(classId: number) {
+		console.log('Selected class group ID:', classId);
 
-		goto(`/class-groups/${id}`);
-
-
+		goto(`classes/class-view?class_group_id=${classId}`);
 	}
 
 </script>
