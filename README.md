@@ -40,3 +40,44 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+> 
+
+## Handling API calls
+There is simple middleware implement taking care of all requests to API. 
+
+It's main purpose is control over access token and it's expiration date.
+
+When token is expired request with refresh token is sent to backend to obtain new access token. After this operation completed successfully designated request is sent.
+
+This middleware takes care of throwing errors which is easier to implement new connections and requests to backend.<br>
+Additionally there are methods implementing basic HTTP operations which makes implementation of connection easy and quick as the only things which need to be passed are:
+endpoint path and body. When url takes parameters(especially GET calls just past params in endpoint path).
+
+There is no need to pass JWT token of the session as middleware takes care of it completely to use correct one.
+### Example
+
+```typescript
+import { api_middleware } from "$lib/api_middleware"
+
+
+export async function get_user_classes_using_JWT() {
+	try {
+		return await api_middleware.get("/api/class_group/list-class-groups");
+	} catch (error){
+		console.error(error);
+		throw error;
+	}
+}
+
+export async function add_class_group(){
+	try{
+		return await api_middleware.post(`/api/class_group/`, {
+			"name": "test middleware",
+			"description": "example usage of middleware"
+		});
+	} catch (error){
+		console.error(error);
+		throw error;
+	}
+}
+```
