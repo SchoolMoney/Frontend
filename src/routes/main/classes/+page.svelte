@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import { get_user_classes_using_JWT } from '$lib/api/class_group';
+	import { getUserClassesUsingJwt } from '$lib/api/class_group';
 	import type { ClassGroup } from '$lib/models/class_group';
 	import { Card, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { goto } from '$app/navigation';
@@ -21,7 +21,7 @@
 
 		console.log(error_message);
 		try {
-			api_response = await get_user_classes_using_JWT();
+			api_response = await getUserClassesUsingJwt();
 			console.log(api_response);
 			if (api_response.length == 0) {
 				error_message = 'No classes found';

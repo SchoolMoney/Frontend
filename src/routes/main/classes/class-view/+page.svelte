@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { fly } from 'svelte/transition';
-	import { get_class_view } from '$lib/api/class_group';
+	import { getClassView } from '$lib/api/class_group';
 	import { decodeToken } from '$lib/api/auth';
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '$lib/components/ui/card';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
@@ -91,7 +91,7 @@
 			}
 
 			const classId = parseInt(classGroupId);
-			classViewData = await get_class_view(classId);
+			classViewData = await getClassView(classId);
 
 		} catch (error) {
 			showErrorPopup = true;
