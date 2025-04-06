@@ -65,7 +65,7 @@ export function useApi(baseUrl = baseApiUrl) {
 			{
 				...options,
 				method: 'POST',
-				body: typeof body === 'string' ? body : JSON.stringify(body)
+				body: JSON.stringify(body)
 			},
 			useAuth,
 		);
@@ -77,7 +77,7 @@ export function useApi(baseUrl = baseApiUrl) {
 			{
 				...options,
 				method: 'PUT',
-				body: typeof body === 'string' ? body : JSON.stringify(body)
+				body: JSON.stringify(body)
 			},
 			useAuth
 		);
