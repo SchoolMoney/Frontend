@@ -32,7 +32,7 @@ export function useApi(baseUrl = baseApiUrl) {
 				fetchOptions.headers['Authorization'] = `Bearer ${getToken()}`;
 			}
 
-			const response = await fetch(url, fetchOptions);
+			let response = await fetch(url, fetchOptions);
 
 			if (response.status === 401 && useAuth) {
 
@@ -42,7 +42,7 @@ export function useApi(baseUrl = baseApiUrl) {
 				}
 
 				fetchOptions.headers['Authorization'] = `Bearer ${getToken()}`;
-				return fetch(url, fetchOptions);
+				response = await fetch(url, fetchOptions);
 			}
 
 			if (!response.ok) {
