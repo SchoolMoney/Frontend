@@ -60,7 +60,7 @@ There is no need to pass JWT token of the session as middleware takes care of it
 import { api_middleware } from "$lib/api_middleware"
 
 
-export async function get_user_classes_using_JWT() {
+export async function getUserClassesUsingJwt() {
 	try {
 		return await api_middleware.get("/api/class_group/list-class-groups");
 	} catch (error){
@@ -69,7 +69,7 @@ export async function get_user_classes_using_JWT() {
 	}
 }
 
-export async function add_class_group(){
+export async function addClassGroup(){
 	try{
 		return await api_middleware.post(`/api/class_group/`, {
 			"name": "test middleware",

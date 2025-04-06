@@ -44,8 +44,8 @@ export async function login(username: string, password: string) {
 		const { detail } = await resp.json();
 		throw new Error(detail);
 	}
-	const { access_token }: Token = await resp.json() as Token;
-	setToken(access_token);
+	const { accessToken }: Token = await resp.json() as Token;
+	setToken(accessToken);
 }
 
 export async function getUserDetails() {
@@ -102,8 +102,8 @@ export async function register(username: string, password: string) {
 }
 
 export async function refresh(){
-	const access_token = decodeTokenAsToken();
-	const resp = await fetch(`${baseApiUrl}/api/auth/refresh?refresh_token=${access_token.refresh_token}`, {
+	const accessToken = decodeTokenAsToken();
+	const resp = await fetch(`${baseApiUrl}/api/auth/refresh?refresh_token=${accessToken.refresh_token}`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
@@ -115,9 +115,9 @@ export async function refresh(){
 		return null;
 	}
 	if (resp.ok) {
-		const { access_token }: Token = await resp.json() as Token;
-		setToken(access_token);
+		const { accessToken }: Token = await resp.json() as Token;
+		setToken(accessToken);
 	}
 
-	return access_token.access_token;
+	return accessToken.accessToken;
 }

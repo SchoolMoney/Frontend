@@ -23,8 +23,8 @@ export function useApi(baseUrl = baseApiUrl) {
 			if (useAuth) {
 				const decodedToken = decodeTokenAsToken();
 				if (decodedToken && decodedToken.expires > new Date().getTime()) {
-					const refresh_result = await refresh();
-					if (!refresh_result) {
+					const refreshResult = await refresh();
+					if (!refreshResult) {
 						throw new Error('Unable to get valid token');
 					}
 				}
@@ -36,8 +36,8 @@ export function useApi(baseUrl = baseApiUrl) {
 
 			if (response.status === 401 && useAuth) {
 
-				const refresh_result = await refresh();
-				if (!refresh_result) {
+				const refreshResult = await refresh();
+				if (!refreshResult) {
 					throw new Error('Unable to get valid token');
 				}
 
