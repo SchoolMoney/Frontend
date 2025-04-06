@@ -1,6 +1,7 @@
 import { type Token, type Session } from '$lib/models/auth';
 import { jwtDecode } from 'jwt-decode';
 import { baseApiUrl } from '../../config';
+import { goto } from '$app/navigation';
 
 const TOKEN_KEY = 'access-token';
 
@@ -16,6 +17,12 @@ export function decodeToken(): Session {
 export function getSessionData(): Session {
   return decodeToken();
 }
+
+export function decodeTokenAsToken(): Token {
+	const token = getToken();
+	return jwtDecode(token!) as Token;
+}
+
 
 export function removeToken() {
     localStorage.removeItem(TOKEN_KEY);
@@ -92,4 +99,25 @@ export async function register(username: string, password: string) {
 		const { detail } = await resp.json();
 		throw new Error(detail);
 	}
+}
+
+export async function refresh(){
+	const access_token = decodeTokenAsToken();
+	const resp = await fetch(`${baseApiUrl}/api/auth/refresh?refresh_token=${access_token.refresh_token}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	})
+	if (resp.status === 401){
+		removeToken();
+		await goto("/login");
+		return null;
+	}
+	if (resp.ok) {
+		const { access_token }: Token = await resp.json() as Token;
+		setToken(access_token);
+	}
+
+	return access_token.access_token;
 }
