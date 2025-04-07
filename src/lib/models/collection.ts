@@ -25,12 +25,33 @@ export const statusLabels: Map<Status, string> = new Map([
   [Status.CANCELLED, 'Cancelled'],
 ]);
 
+export const statusColors: Map<Status, string> = new Map([
+  [Status.OPEN, ''],
+  [Status.FINISHED, 'green'],
+  [Status.NOT_PAID_BEFORE_DEADLINE, 'yellow'],
+  [Status.CANCELLED, 'red'],
+]);
+
+export const statusTextColors: Map<Status, string> = new Map([
+  [Status.OPEN, ''],
+  [Status.FINISHED, `text-green-600`],
+  [Status.NOT_PAID_BEFORE_DEADLINE, `text-yellow-600`],
+  [Status.CANCELLED, `text-red-600`],
+]);
+
+export const statusBorderColors: Map<Status, string> = new Map([
+  [Status.OPEN, ''],
+  [Status.FINISHED, `border-green-600`],
+  [Status.NOT_PAID_BEFORE_DEADLINE, `border-yellow-600`],
+  [Status.CANCELLED, `border-red-600`],
+]);
+
 const baseVariant = 'rounded-md shadow-md p-4 transition-colors';
 export const cardVariants: Map<Status, string> = new Map([
-  [Status.OPEN, `${baseVariant} bg-green-100 text-green-800 border-green-300`],
-  [Status.FINISHED, `${baseVariant} bg-blue-100 text-blue-800 border-blue-300`],
-  [Status.NOT_PAID_BEFORE_DEADLINE, `${baseVariant} bg-yellow-100 text-yellow-800 border-yellow-300`],
-  [Status.CANCELLED, `${baseVariant} bg-red-100 text-red-800 border-red-300`],
+  [Status.OPEN, `${baseVariant}`],
+  [Status.FINISHED, `${baseVariant} ${statusBorderColors.get(Status.FINISHED)}`],
+  [Status.NOT_PAID_BEFORE_DEADLINE, `${baseVariant} ${statusBorderColors.get(Status.NOT_PAID_BEFORE_DEADLINE)}`],
+  [Status.CANCELLED, `${baseVariant} ${statusBorderColors.get(Status.CANCELLED)}`],
 ]);
 
 export type GetCollectionsParams = {

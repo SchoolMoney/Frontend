@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cardVariants, Status, type Collection, type GetCollectionsParams } from '$lib/models/collection';
+	import { cardVariants, statusTextColors, Status, type Collection, type GetCollectionsParams } from '$lib/models/collection';
 	import { statusLabels } from '$lib/models/collection';
 	import { getCollections } from '$lib/api/collection';
 	import * as Card from '$lib/components/ui/card';
@@ -56,7 +56,7 @@
 </script>
 
 <div class="min-h-dvh">
-  <h2 class="text-center text-4xl w-full font-semibold">Collections</h2>
+  <h2 class="text-center text-4xl w-full font-bold">Collections</h2>
   
   <div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
     <form class="lg:col-start-2 lg:col-end-3 md:col mt-10" on:submit={handleSubmit}>
@@ -190,7 +190,7 @@
             {#if collection.end_date}
               <div>Ends - {shortDateFormatter.format(collection.end_date)}</div>
             {/if}
-            <div>Status - {statusLabels.get(collection.status)}</div>
+            <div>Status - <span class={statusTextColors.get(collection.status) + " font-semibold"}>{statusLabels.get(collection.status)}</span></div>
           </Card.Content>
           <Card.Footer class="flex justify-between">
             {#if collection.status === Status.OPEN}
