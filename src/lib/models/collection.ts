@@ -9,6 +9,9 @@ export type Collection = {
   end_date?: Date;
   status: Status;
   price: number;
+  class_group_id: number;
+  bank_account_id: number;
+  owner_id: number;
 }
 
 export enum Status {
@@ -65,9 +68,9 @@ export type GetCollectionsParams = {
 
 export type FormattedGetCollectionsParams = {
   name?: string;
-  start_date_from?: Date;
-  start_date_to?: Date;
-  end_date_from?: Date;
-  end_date_to?: Date;
+  start_date_from?: string;
+  start_date_to?: string;
+  end_date_from?: string;
+  end_date_to?: string;
   status?: Status;
 }

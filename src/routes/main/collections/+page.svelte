@@ -12,7 +12,8 @@
 	import * as Popover from '$lib/components/ui/popover';
   import * as Select from "$lib/components/ui/select"
 	import { cn } from '$lib/utils';
-  import { parseToDate, parseToShortDate, shortDateFormatter } from '../../../config';
+  import { parseToShortDate, shortDateFormatter } from '../../../config';
+	import type { Selected } from 'bits-ui';
 
   let collections: Collection[] = [];
 
@@ -25,7 +26,8 @@
     status: undefined,
   };
 
-  let params: GetCollectionsParams = { ...emptyParams };
+  
+  let params = { ...emptyParams };
 
   $: fetchCollections();
 
@@ -34,11 +36,11 @@
       collections = await getCollections({
         ...params,
 
-        start_date_from: parseToDate(params.start_date_from),
-        start_date_to: parseToDate(params.start_date_to),
+        start_date_from: parseToShortDate(params.start_date_from),
+        start_date_to: parseToShortDate(params.start_date_to),
         
-        end_date_from: parseToDate(params.end_date_from),
-        end_date_to: parseToDate(params.end_date_to),
+        end_date_from: parseToShortDate(params.end_date_from),
+        end_date_to: parseToShortDate(params.end_date_to),
       });
     } catch(e) {
       console.error(e);
@@ -94,7 +96,7 @@
                 variant="outline"
                 class={cn(
                   "w-full justify-start text-left font-normal",
-                  !params.start_date_from && "text-muted-foreground"
+                  !params.start_date_to && "text-muted-foreground"
                 )}
                 builders={[builder]}
               >
@@ -119,7 +121,7 @@
           <Label for="status">Status</Label>
           <Select.Root
             onSelectedChange={(v) => {
-              v && (params.status = v.value as Status);
+              params.status = v?.value as Status ?? undefined;
             }}>
             <Select.Trigger>
               <Select.Value placeholder="Status" />
@@ -201,7 +203,7 @@
         </Card.Root>
       {/each}
     {:else}
-      <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-2 col-end-3">No collections found.</div>
+      <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No collections found.</div>
     {/if}
   </div>
 </div>
