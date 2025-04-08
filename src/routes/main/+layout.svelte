@@ -14,7 +14,8 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
-	import { logout,getSessionData, Privilege } from '$lib/api/auth';
+	import { logout, getSessionData } from '$lib/api/auth';
+	import { Privilege } from '$lib/models/auth';
 	import { goto } from '$app/navigation';
 
 	let isAdmin: boolean = false;
@@ -207,7 +208,7 @@
 			</DropdownMenu.Root>
 		</header>
 		<main
-			class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3"
+			class="p-4 sm:px-6 sm:py-0"
 		>
 			<slot></slot>
 		</main>
