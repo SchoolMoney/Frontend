@@ -33,7 +33,7 @@
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>
 					<a
-						href="collections"
+						href="/main/collections"
 						class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname.includes('collections')) ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
@@ -47,7 +47,7 @@
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>
 					<a
-						href="classes"
+						href="/main/classes"
 						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname.includes('classes')) ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
@@ -61,7 +61,7 @@
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>
 					<a
-						href="children"
+						href="/main/children"
 						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname.includes('children')) ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
@@ -75,7 +75,7 @@
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>
 					<a
-						href="reports"
+						href="/main/reports"
 						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname.includes('reports')) ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
@@ -89,7 +89,7 @@
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>
 					<a
-						href="chat"
+						href="/main/chat"
 						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname.includes('chat')) ? activeTabClasses : ''}"
 						use:builder.action
 						{...builder}
@@ -106,7 +106,7 @@
 				<Tooltip.Root>
 					<Tooltip.Trigger asChild let:builder>
 						<a
-							href="admin"
+							href="/main/admin"
 							class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname.includes('admin')) ? activeTabClasses : ''}"
 							use:builder.action
 							{...builder}
@@ -134,35 +134,35 @@
 				<Sheet.Content side="left" class="sm:max-w-xs">
 					<nav class="grid gap-6 text-lg font-medium">
 						<a
-							href="collections"
+							href="/main/collections"
 							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname.includes('collections')) ? activeTabClasses : ''}"
 						>
 							<HandCoins class="h-5 w-5" />
 							Collections
 						</a>
 						<a
-							href="classes"
+							href="/main/classes"
 							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname .includes('classes')) ? activeTabClasses : ''}"
 						>
 							<School class="h-5 w-5" />
 							Classes
 						</a>
 						<a
-							href="children"
+							href="/main/children"
 							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname.includes('children')) ? activeTabClasses : ''}"
 						>
 							<Baby class="h-5 w-5" />
 							Children
 						</a>
 						<a
-							href="reports"
+							href="/main/reports"
 							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname.includes('reports')) ? activeTabClasses : ''}"
 						>
 							<Files class="h-5 w-5" />
 							Reports
 						</a>
 						<a
-							href="chat"
+							href="/main/chat"
 							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname.includes('chat')) ? activeTabClasses : ''}"
 						>
 							<MessageCircle class="h-5 w-5" />
@@ -170,7 +170,7 @@
 						</a>
 						{#if isAdmin}
 							<a
-								href="admin"
+								href="/main/admin"
 								class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname.includes('admin')) ? activeTabClasses : ''}"
 							>
 								<ShieldUser class="h-5 w-5" />

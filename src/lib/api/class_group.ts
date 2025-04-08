@@ -18,3 +18,13 @@ export async function getClassView(class_id: number){
 		throw error;
 	}
 }
+
+export async function getClasses() {
+	try {
+		return await api_middleware.get(`/api/class_group`);
+	} catch (error){
+		console.error(error);
+		throw error;
+	}
+}
+

@@ -67,8 +67,26 @@ export async function getCollections(params: FormattedGetCollectionsParams): Pro
 
       const response = await api_middleware.get(`/api/collection?${queryParams.toString()}`);
       return response;
-  } catch (error) {
-      console.error("Error fetching collections: ", error);
-      throw error;
+  } catch (e) {
+      console.error("Error fetching collections: ", e);
+      throw e;
+  }
+}
+
+export async function getCollectionById(collectionId: number): Promise<Collection> {
+  try {
+    return await api_middleware.get(`/api/collection/${collectionId}`);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
+export async function createCollection(collection: Collection): Promise<Collection> {
+  try {
+    return await api_middleware.post(`/api/collection`, collection);
+  } catch (e) {
+    console.error("Error creating collection: ", e);
+    throw e;
   }
 }

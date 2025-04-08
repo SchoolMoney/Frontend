@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { cardVariants, statusTextColors, Status, type Collection, type GetCollectionsParams } from '$lib/models/collection';
 	import { statusLabels } from '$lib/models/collection';
 	import { getCollections } from '$lib/api/collection';
@@ -13,7 +14,6 @@
   import * as Select from "$lib/components/ui/select"
 	import { cn } from '$lib/utils';
   import { parseToShortDate, shortDateFormatter } from '../../../config';
-	import type { Selected } from 'bits-ui';
 
   let collections: Collection[] = [];
 
@@ -47,13 +47,21 @@
     }
   }
 
-  function handleSubmit(event: Event) {
+  function handleSubmit(event: Event): void {
     event.preventDefault();
     fetchCollections();
   }
 
-  function clearFilters() {
+  function clearFilters(event: Event): void {
     params = { ...emptyParams };
+  }
+
+  function handleAddCollection(): void {
+    goto('collections/0');
+  }
+
+  function handleDetailsClick(collection_id: number): void {
+    goto(`collections/${collection_id}`);
   }
 </script>
 
@@ -175,6 +183,7 @@
             </Popover.Content>
           </Popover.Root>
         </div>
+        <Button class="bg-green-500 text-white mt-auto hover:bg-opacity-85" on:click={handleAddCollection}>Add</Button>
       </Card.Content>
     </form>
   </div>
@@ -183,14 +192,22 @@
     {#if collections.length > 0}
       {#each collections as collection}
         <Card.Root class={cardVariants.get(collection.status)}>
-          <Card.Header>
-            <Card.Title>{collection.name}</Card.Title>
-            <Card.Description>{collection.description}</Card.Description>
+          <Card.Header class="flex-row">
+            {#if collection.logo_path}
+              <img
+                class="w-16 h-16 rounded"
+                src={collection.logo_path}
+                alt="Avatar" />
+            {/if}
+            <div class="flex space-y-1.5 px-6 flex-col">
+              <Card.Title>{collection.name}</Card.Title>
+              <Card.Description>{collection.description}</Card.Description>
+            </div>
           </Card.Header>
           <Card.Content>
-            <div>Started - {shortDateFormatter.format(collection.start_date)}</div>
+            <div>Started - {collection.start_date}<div>
             {#if collection.end_date}
-              <div>Ends - {shortDateFormatter.format(collection.end_date)}</div>
+              <div>Ends - {collection.end_date}</div>
             {/if}
             <div>Status - <span class={statusTextColors.get(collection.status) + " font-semibold"}>{statusLabels.get(collection.status)}</span></div>
           </Card.Content>
@@ -198,7 +215,7 @@
             {#if collection.status === Status.OPEN}
               <Button variant="destructive">Cancel</Button>
             {/if}
-            <Button class="ms-auto">Details</Button>
+            <Button class="ms-auto" on:click={handleDetailsClick(collection.id)}>Details</Button>
           </Card.Footer>
         </Card.Root>
       {/each}
