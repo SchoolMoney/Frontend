@@ -19,3 +19,13 @@ const config = {
 };
 
 export default config;
+
+module.exports = {
+  kit: {
+    vite: {
+       plugins: [
+          css({ output: 'bundle.css' })
+ ]
+    }
+ }
+}
