@@ -115,8 +115,8 @@ export async function refresh(){
 		return null;
 	}
 	if (resp.ok) {
-		const { access_token: accessToken }: Token = await resp.json() as Token;
-		setToken(accessToken);
+		const { access_token }: Token = await resp.json() as Token;
+		setToken(access_token);
 	}
 
 	return accessToken.access_token;
