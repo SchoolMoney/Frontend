@@ -129,7 +129,7 @@
         </Select.Root>
       </div>
     {/if}
-    {#if isAdmin}
+    {#if isAdmin || !collection.id}
       <Button class="ms-auto" variant="default" type="submit">Save</Button>
     {/if}
   </form>
