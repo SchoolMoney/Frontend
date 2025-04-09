@@ -8,81 +8,33 @@
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
 	import { CircleX, Plus, Calendar, Eye } from 'lucide-svelte';
+	import { cardVariants, CollectionStatus, statusLabels } from '$lib/models/collection';
+	import { goto } from '$app/navigation';
+	import { GroupRole, type ClassView } from '$lib/models/class_group';
+  import { Label } from "$lib/components/ui/label";
+  import * as RadioGroup from "$lib/components/ui/radio-group";
+	import { Privilege } from '$lib/models/auth';
+	import { Confirm } from '$lib/components/custom/confirm';
+	import { cancelCollection } from '$lib/api/collection';
 
-	interface Collection {
-		id: number;
-		logo_path: string | null;
-		name: string;
-		description: string;
-		start_date: string;
-		end_date: string | null;
-		status: number;
-		price: number;
-		class_group_id: number;
-		bank_account_id: number;
-		owner_id: number;
-	}
-
-	interface Child {
-		name: string;
-		birth_date: string;
-		id: number;
-		surname: string;
-		group_id: number;
-	}
-
-	interface Parent {
-		id: number;
-		name: string;
-		surname: string;
-		role: number;
-		account_id: number;
-	}
-
-	interface Requester {
-		parent_id: number;
-		name: string;
-		surname: string;
-		group_role: number;
-	}
-
-	interface ClassView {
-		class: {
-			description: string;
-			name: string;
-			id: number;
-		};
-		children: Child[];
-		parents: Parent[];
-		collections: Collection[];
-		requester: Requester;
-	}
-
-
-	const collectionStatuses = [
-		{ value: '0', label: 'Open' },
-		{ value: '1', label: 'Finished' },
-		{ value: '2', label: 'Not Paid Before Deadline' },
-		{ value: '3', label: 'Cancelled' }
-	];
 
 	let classViewData: ClassView | null = null;
 	let isLoading = true;
 	let isLoadingCollections = false;
 	let showErrorPopup = false;
 	let errorMessage = '';
-	let selectedStatus: string = '0';
-	let user_type: number;
+	let privilege: Privilege;
+  let classId: number;
+  let isConfirmDialogOpen = false;
+  let selectedCollectionIdToCancel = 0;
 
-
-
-	async function handleStatusClick(statusValue: string) {
-		//Implement filtering by collection status
+	async function handleStatusChange(status: CollectionStatus) {
+    classViewData = await getClassView(classId, status);
 	}
 
 	onMount(async () => {
 		let decoded_token = decodeToken();
-		user_type = decoded_token.privilege;
+		privilege = decoded_token.privilege;
 		try {
 			const classGroupId = page.url.searchParams.get('class_group_id');
 
@@ -90,9 +42,8 @@
 				throw new Error('No class_group_id provided');
 			}
 
-			const classId = parseInt(classGroupId);
-			classViewData = await getClassView(classId);
-
+			classId = parseInt(classGroupId, 10);
+			classViewData = await getClassView(classId, CollectionStatus.OPEN);
 		} catch (error) {
 			showErrorPopup = true;
 			errorMessage = error.message || 'An error occurred while fetching data';
@@ -105,34 +56,55 @@
 	});
 
 	function formatDate(dateString: string | null): string {
-		if (!dateString) return 'Not specified';
+		if (!dateString) {
+      return 'Not specified';
+    }
+    
 		const date = new Date(dateString);
 		return date.toLocaleDateString();
 	}
 
-	function getStatusText(status: number): string {
-		switch (status) {
-			case 0:
-				return 'Open';
-			case 1:
-				return 'Finished';
-			case 2:
-				return 'Not Paid Before Deadline';
-			case 3:
-				return 'Cancelled';
-			default:
-				return 'Unknown';
-		}
+	function handleAddCollection() {
+    goToCollection(0);
 	}
 
-	function handleAddCollection() {
-	}
+  function handleDetailsCollection(collection_id: number) {
+    goToCollection(collection_id);
+  }
+
+  function goToCollection(collection_id: number): void {
+    goto(`/main/collections/${collection_id}`);
+  }
+
+  function handleCancelCollection(collection_id: number) {
+    selectedCollectionIdToCancel = collection_id;
+    isConfirmDialogOpen = true;
+  }
+
+  async function confirmCancelCollection() {
+    try {
+      await cancelCollection(selectedCollectionIdToCancel);
+      isConfirmDialogOpen = false;
+      classViewData!.collections = classViewData?.collections.filter(c => c.id !== selectedCollectionIdToCancel);
+      selectedCollectionIdToCancel = 0;
+    } catch (error) {
+			showErrorPopup = true;
+			errorMessage = error.message || 'An error occurred while cancelling collection';
+			setTimeout(() => {
+				showErrorPopup = false;
+			}, 5000);
+		} finally {
+			isLoading = false;
+		}
+  }
 
 	function handleShowReport() {
 	}
 </script>
 
-<div class="container mx-auto py-6">
+<Confirm isOpen={isConfirmDialogOpen} onCancel={() => isConfirmDialogOpen = false} onConfirm={confirmCancelCollection} />
+
+<div class="min-h-dvh">
 	{#if showErrorPopup}
 		<div class="fixed top-4 right-4 z-50 max-w-md" transition:fly={{ y: -30, duration: 300 }}>
 			<Alert variant="destructive">
@@ -154,82 +126,85 @@
 		</div>
 
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-			<!-- Collections Section - 2/3 width on large screens -->
 			<div class="lg:col-span-2">
 				<div class="mb-4 flex justify-between items-center">
 					<div class="flex items-center gap-4">
 						<h2 class="text-xl font-semibold">Collections</h2>
 
-						<!-- Filtr statusu - przyciski zamiast dropdown -->
 						<div class="flex items-center gap-2">
 							<span class="text-sm text-muted-foreground">Filter:</span>
-							<div class="flex flex-wrap gap-2">
-								{#each collectionStatuses as status}
-									<button
-										class="px-2 py-1 text-xs rounded-md transition-colors {selectedStatus === status.value ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}"
-										on:click={() => handleStatusClick(status.value)}
-									>
-										{status.label}
-									</button>
-								{/each}
-							</div>
+              <RadioGroup.Root
+                value={CollectionStatus.OPEN.toString()}
+                onValueChange={(value) => handleStatusChange(parseInt(value ?? CollectionStatus.OPEN, 10))}
+                class="flex flex-wrap gap-2">
+                {#each statusLabels as [statusValue, statusLabel]}
+                  <div class="flex items-center space-x-2 ms-4">
+                    <RadioGroup.Item value={statusValue.toString()} id={statusValue.toString()} />
+                    <Label for={statusValue.toString()}>{statusLabel}</Label>
+                  </div>
+                {/each}
+              </RadioGroup.Root>
 						</div>
 					</div>
 
-					<Button on:click={handleShowReport} class="flex items-center gap-2">
+					<Button on:click={handleShowReport} class="flex items-center gap-2 ms-auto">
 						<Eye class="h-4 w-4" />
-							Show collections report
+            Show report
 					</Button>
 
-					{#if (classViewData.requester && classViewData.requester.group_role === 2) || user_type === 10}
-						<Button on:click={handleAddCollection} class="flex items-center gap-2">
+					{#if classViewData.requester?.group_role === GroupRole.CASHIER || privilege === Privilege.ADMIN_USER}
+            <Button
+              class="bg-green-500 text-white mt-auto hover:bg-opacity-85 ms-2"
+              on:click={handleAddCollection}>
 							<Plus class="h-4 w-4" />
-							Add Collection
+							Add collection
 						</Button>
 					{/if}
 				</div>
 
-				<div class="w-full overflow-y-auto max-h-[calc(100vh-250px)] pr-2">
+				<div class="w-full overflow-y-auto max-h-[calc(100vh-250px)]">
 					{#if isLoadingCollections}
 						<div class="flex justify-center items-center h-32">
 							<p>Loading collections...</p>
 						</div>
 					{:else if classViewData.collections.length === 0}
-						<div class="bg-muted p-6 rounded-lg text-center">
-							<p>No collections found.</p>
-						</div>
+            <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No collections found.</div>
 					{:else}
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							{#each classViewData.collections as collection (collection.id)}
-								<Card class="h-full transition-shadow hover:shadow-md">
-									<CardHeader>
-										{#if collection.logo_path}
-											<div class="w-full flex justify-center mb-3">
-												<img
-													src={collection.logo_path}
-													alt={collection.name}
-													class="h-16 w-auto object-contain"
-												/>
-											</div>
-										{/if}
-										<CardTitle>{collection.name}</CardTitle>
-										<CardDescription>{collection.description}</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<div class="flex items-center gap-2 mb-1 text-sm">
-											<Calendar class="h-4 w-4" />
-											<span>From: {formatDate(collection.start_date)}</span>
-										</div>
-										{#if collection.end_date}
-											<div class="flex items-center gap-2 mb-1 text-sm">
-												<Calendar class="h-4 w-4" />
-												<span>To: {formatDate(collection.end_date)}</span>
-											</div>
-										{/if}
+								<Card class={cardVariants.get(collection.status) + "h-full transition-shadow hover:shadow-md"}>
+                  <CardHeader class="flex-row">
+                    {#if collection.logo_path}
+                      <img
+                        class="w-16 h-16 rounded"
+                        src={collection.logo_path}
+                        alt="Avatar" />
+                    {/if}
+                    <div class="flex space-y-1.5 px-6 flex-col">
+                      <CardTitle>{collection.name}</CardTitle>
+                      <CardDescription>{collection.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+									<CardContent class="space-y-2">
+                    <div class="flex gap-2 text-sm">
+                      <div class="flex gap-2">
+                        <Calendar class="h-4 w-4" />
+                        <span>From: {formatDate(collection.start_date)}</span>
+                      </div>
+                      {#if collection.end_date}
+                        <div class="flex gap-2">
+                          <span>to: {formatDate(collection.end_date)}</span>
+                        </div>
+                      {/if}
+                    </div>
+										<div class="text-sm font-semibold">{collection.price.toFixed(2)} PLN</div>
+										<div class="text-sm">{statusLabels.get(collection.status)}</div>
 									</CardContent>
 									<CardFooter class="flex justify-between">
-										<span class="text-sm font-semibold">{collection.price.toFixed(2)} PLN</span>
-										<span class="text-sm">{getStatusText(collection.status)}</span>
+                    {#if collection.status === CollectionStatus.OPEN && (privilege === Privilege.ADMIN_USER || classViewData.requester?.group_role === GroupRole.CASHIER)}
+                      <Button variant="destructive" on:click={() => handleCancelCollection(collection.id)}>Cancel</Button>
+                    {/if}
+                    <Button on:click={() => handleDetailsCollection(collection.id)}>Details</Button>
 									</CardFooter>
 								</Card>
 							{/each}
