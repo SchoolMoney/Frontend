@@ -12,7 +12,7 @@
   import { onMount } from 'svelte';
   import { getCollectionById, createCollection } from '$lib/api/collection';
 	import type { Collection } from '$lib/models/collection';
-	import { Status, statusLabels } from '$lib/models/collection';
+	import { Status, statusLabels, statusTextColors } from '$lib/models/collection';
 	import { page } from '$app/state';
 	import type { ClassGroup } from '$lib/models/class_group';
 	import { getClasses } from '$lib/api/class_group';
@@ -53,7 +53,7 @@
 </script>
 
 <div class="min-h-dvh">
-  <h2 class="text-center text-4xl w-full font-bold">Collection {#if collection.id > 0} {collection.name} - {statusLabels.get(collection.status)} {/if}</h2>
+  <h2 class="text-center text-4xl w-full font-bold">Collection {#if collection.id > 0} {collection.name} - <span class={statusTextColors.get(collection.status)}>{statusLabels.get(collection.status)}</span> {/if}</h2>
   <form class={cn(
       "grid grid-cols-1 md:grid-cols-1 gap-6 p-6 bg-white shadow-md rounded-lg mt-20",
       !collection.id && "max-w-2xl mx-auto"

@@ -56,10 +56,6 @@
     params = { ...emptyParams };
   }
 
-  function handleAddCollection(): void {
-    goto('collections/0');
-  }
-
   function handleDetailsClick(collection_id: number): void {
     goto(`collections/${collection_id}`);
   }
@@ -183,7 +179,6 @@
             </Popover.Content>
           </Popover.Root>
         </div>
-        <Button class="bg-green-500 text-white mt-auto hover:bg-opacity-85" on:click={handleAddCollection}>Add</Button>
       </Card.Content>
     </form>
   </div>
@@ -215,7 +210,7 @@
             {#if collection.status === Status.OPEN}
               <Button variant="destructive">Cancel</Button>
             {/if}
-            <Button class="ms-auto" on:click={handleDetailsClick(collection.id)}>Details</Button>
+            <Button class="ms-auto" on:click={(_) => handleDetailsClick(collection.id)}>Details</Button>
           </Card.Footer>
         </Card.Root>
       {/each}

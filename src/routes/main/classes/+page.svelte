@@ -7,6 +7,8 @@
 	import { goto } from '$app/navigation';
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
 	import { CircleX } from 'lucide-svelte';
+	import { Button } from '$lib/components/ui/button';
+	import CardContent from '../../../lib/components/ui/card/card-content.svelte';
 
 
 	let error_message = '';
@@ -51,16 +53,14 @@
 	})
 
 	function handleCardClick(classId: number) {
-		console.log('Selected class group ID:', classId);
-
 		goto(`classes/class-view?class_group_id=${classId}`);
 	}
 
 </script>
 
 
-<div class="container mx-auto py-6">
-	<h1 class="text-2xl font-bold mb-6">Classes</h1>
+<div class="min-h-dvh">
+  <h2 class="text-center text-4xl w-full font-bold">Classes</h2>
 
 	{#if show_error_popup}
 		<div class="fixed top-4 right-4 z-50 max-w-md" transition:fly={{ y: -30, duration: 300 }}>
@@ -77,25 +77,24 @@
 			<p>Loading class groups...</p>
 		</div>
 	{:else if api_response.length === 0}
-		<div class="bg-muted p-6 rounded-lg text-center">
-			<p>No class groups found.</p>
-		</div>
+  <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No class groups found.</div>
 	{:else}
 		<div class="w-full overflow-y-auto max-h-[calc(100vh-150px)]">
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
 				{#each api_response as classGroup (classGroup.id)}
-					<button
-						class="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg"
-						on:click={() => handleCardClick(classGroup.id)}
-						data-id={classGroup.id}
-					>
-						<Card class="h-full transition-shadow hover:shadow-md">
-							<CardHeader>
-								<CardTitle>{classGroup.name}</CardTitle>
-								<CardDescription>{classGroup.description}</CardDescription>
-							</CardHeader>
-						</Card>
-					</button>
+          <Card class="h-full transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle>{classGroup.name}</CardTitle>
+              <CardDescription>{classGroup.description}</CardDescription>
+            </CardHeader>
+            <CardContent class="flex justify-end">
+              <Button
+                class="ms-auto"
+                on:click={() => handleCardClick(classGroup.id)}>
+                Details
+              </Button>
+            </CardContent>
+          </Card>
 				{/each}
 			</div>
 		</div>

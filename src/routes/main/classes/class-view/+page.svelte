@@ -8,81 +8,29 @@
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
 	import { CircleX, Plus, Calendar, Eye } from 'lucide-svelte';
+	import { Status, statusLabels } from '$lib/models/collection';
+	import { goto } from '$app/navigation';
+	import { GroupRole, type ClassView } from '$lib/models/class_group';
+  import { Label } from "$lib/components/ui/label";
+  import * as RadioGroup from "$lib/components/ui/radio-group";
+	import { Privilege } from '$lib/models/auth';
 
-	interface Collection {
-		id: number;
-		logo_path: string | null;
-		name: string;
-		description: string;
-		start_date: string;
-		end_date: string | null;
-		status: number;
-		price: number;
-		class_group_id: number;
-		bank_account_id: number;
-		owner_id: number;
-	}
-
-	interface Child {
-		name: string;
-		birth_date: string;
-		id: number;
-		surname: string;
-		group_id: number;
-	}
-
-	interface Parent {
-		id: number;
-		name: string;
-		surname: string;
-		role: number;
-		account_id: number;
-	}
-
-	interface Requester {
-		parent_id: number;
-		name: string;
-		surname: string;
-		group_role: number;
-	}
-
-	interface ClassView {
-		class: {
-			description: string;
-			name: string;
-			id: number;
-		};
-		children: Child[];
-		parents: Parent[];
-		collections: Collection[];
-		requester: Requester;
-	}
-
-
-	const collectionStatuses = [
-		{ value: '0', label: 'Open' },
-		{ value: '1', label: 'Finished' },
-		{ value: '2', label: 'Not Paid Before Deadline' },
-		{ value: '3', label: 'Cancelled' }
-	];
 
 	let classViewData: ClassView | null = null;
 	let isLoading = true;
 	let isLoadingCollections = false;
 	let showErrorPopup = false;
 	let errorMessage = '';
-	let selectedStatus: string = '0';
-	let user_type: number;
+	let privilege: Privilege;
+  let classId: number;
 
-
-
-	async function handleStatusClick(statusValue: string) {
-		//Implement filtering by collection status
+	async function handleStatusChange(status: Status) {
+    classViewData = await getClassView(classId, status);
 	}
 
 	onMount(async () => {
 		let decoded_token = decodeToken();
-		user_type = decoded_token.privilege;
+		privilege = decoded_token.privilege;
 		try {
 			const classGroupId = page.url.searchParams.get('class_group_id');
 
@@ -90,9 +38,8 @@
 				throw new Error('No class_group_id provided');
 			}
 
-			const classId = parseInt(classGroupId);
-			classViewData = await getClassView(classId);
-
+			classId = parseInt(classGroupId, 10);
+			classViewData = await getClassView(classId, Status.OPEN);
 		} catch (error) {
 			showErrorPopup = true;
 			errorMessage = error.message || 'An error occurred while fetching data';
@@ -105,34 +52,23 @@
 	});
 
 	function formatDate(dateString: string | null): string {
-		if (!dateString) return 'Not specified';
+		if (!dateString) {
+      return 'Not specified';
+    }
+    
 		const date = new Date(dateString);
 		return date.toLocaleDateString();
 	}
 
-	function getStatusText(status: number): string {
-		switch (status) {
-			case 0:
-				return 'Open';
-			case 1:
-				return 'Finished';
-			case 2:
-				return 'Not Paid Before Deadline';
-			case 3:
-				return 'Cancelled';
-			default:
-				return 'Unknown';
-		}
-	}
-
 	function handleAddCollection() {
+    goto('/main/collections/0');
 	}
 
 	function handleShowReport() {
 	}
 </script>
 
-<div class="container mx-auto py-6">
+<div class="min-h-dvh">
 	{#if showErrorPopup}
 		<div class="fixed top-4 right-4 z-50 max-w-md" transition:fly={{ y: -30, duration: 300 }}>
 			<Alert variant="destructive">
@@ -154,37 +90,38 @@
 		</div>
 
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-			<!-- Collections Section - 2/3 width on large screens -->
 			<div class="lg:col-span-2">
 				<div class="mb-4 flex justify-between items-center">
 					<div class="flex items-center gap-4">
 						<h2 class="text-xl font-semibold">Collections</h2>
 
-						<!-- Filtr statusu - przyciski zamiast dropdown -->
 						<div class="flex items-center gap-2">
 							<span class="text-sm text-muted-foreground">Filter:</span>
-							<div class="flex flex-wrap gap-2">
-								{#each collectionStatuses as status}
-									<button
-										class="px-2 py-1 text-xs rounded-md transition-colors {selectedStatus === status.value ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}"
-										on:click={() => handleStatusClick(status.value)}
-									>
-										{status.label}
-									</button>
-								{/each}
-							</div>
+              <RadioGroup.Root
+                value={Status.OPEN.toString()}
+                onValueChange={(value) => handleStatusChange(parseInt(value ?? Status.OPEN, 10))}
+                class="flex flex-wrap gap-2">
+                {#each statusLabels as [statusValue, statusLabel]}
+                  <div class="flex items-center space-x-2 ms-4">
+                    <RadioGroup.Item value={statusValue.toString()} id={statusValue.toString()} />
+                    <Label for={statusValue.toString()}>{statusLabel}</Label>
+                  </div>
+                {/each}
+              </RadioGroup.Root>
 						</div>
 					</div>
 
 					<Button on:click={handleShowReport} class="flex items-center gap-2">
 						<Eye class="h-4 w-4" />
-							Show collections report
+            Show report
 					</Button>
 
-					{#if (classViewData.requester && classViewData.requester.group_role === 2) || user_type === 10}
-						<Button on:click={handleAddCollection} class="flex items-center gap-2">
+					{#if (classViewData.requester?.group_role === GroupRole.CASHIER) || privilege === Privilege.ADMIN_USER}
+            <Button
+              class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
+              on:click={handleAddCollection}>
 							<Plus class="h-4 w-4" />
-							Add Collection
+							Add collection
 						</Button>
 					{/if}
 				</div>
@@ -195,9 +132,7 @@
 							<p>Loading collections...</p>
 						</div>
 					{:else if classViewData.collections.length === 0}
-						<div class="bg-muted p-6 rounded-lg text-center">
-							<p>No collections found.</p>
-						</div>
+            <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No collections found.</div>
 					{:else}
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							{#each classViewData.collections as collection (collection.id)}
@@ -229,7 +164,7 @@
 									</CardContent>
 									<CardFooter class="flex justify-between">
 										<span class="text-sm font-semibold">{collection.price.toFixed(2)} PLN</span>
-										<span class="text-sm">{getStatusText(collection.status)}</span>
+										<span class="text-sm">{statusLabels.get(collection.status)}</span>
 									</CardFooter>
 								</Card>
 							{/each}
