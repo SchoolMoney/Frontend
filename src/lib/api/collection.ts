@@ -56,20 +56,20 @@ const tempCollections: Collection[] = [
 
 export async function getCollections(params: FormattedGetCollectionsParams): Promise<Collection[]> {
   try {
-      const queryParams = new URLSearchParams();
+    const queryParams = new URLSearchParams();
 
-      if (params?.name) queryParams.append('name', params.name);
-      if (params?.start_date_from) queryParams.append('start_date_from', params.start_date_from);
-      if (params?.start_date_to) queryParams.append('start_date_to', params.start_date_to);
-      if (params?.end_date_from) queryParams.append('end_date_from', params.end_date_from);
-      if (params?.end_date_to) queryParams.append('end_date_to', params.end_date_to);
-      if (params?.status !== undefined) queryParams.append('status', params.status.toString());
+    if (params?.name) queryParams.append('name', params.name);
+    if (params?.start_date_from) queryParams.append('start_date_from', params.start_date_from);
+    if (params?.start_date_to) queryParams.append('start_date_to', params.start_date_to);
+    if (params?.end_date_from) queryParams.append('end_date_from', params.end_date_from);
+    if (params?.end_date_to) queryParams.append('end_date_to', params.end_date_to);
+    if (params?.status !== undefined) queryParams.append('status', params.status.toString());
 
-      const response = await api_middleware.get(`/api/collection?${queryParams.toString()}`);
-      return response;
+    const response = await api_middleware.get(`/api/collection?${queryParams.toString()}`);
+    return response;
   } catch (e) {
-      console.error("Error fetching collections: ", e);
-      throw e;
+    console.error("Error fetching collections: ", e);
+    throw e;
   }
 }
 
@@ -87,6 +87,24 @@ export async function createCollection(collection: Collection): Promise<Collecti
     return await api_middleware.post(`/api/collection`, collection);
   } catch (e) {
     console.error("Error creating collection: ", e);
+    throw e;
+  }
+}
+
+export async function updateCollection(collection: Collection): Promise<Collection> {
+  try {
+    return await api_middleware.put(`/api/collection/${collection.id}`, collection);
+  } catch (e) {
+    console.error("Error updating collection: ", e);
+    throw e;
+  }
+}
+
+export async function cancelCollection(collection_id: number): Promise<void> {
+  try {
+    await api_middleware.put(`/api/collection/${collection_id}/cancel`, undefined);
+  } catch(e) {
+    console.error("Error cancelling collection: ", e);
     throw e;
   }
 }

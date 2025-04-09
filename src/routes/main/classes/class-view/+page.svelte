@@ -8,12 +8,14 @@
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
 	import { CircleX, Plus, Calendar, Eye } from 'lucide-svelte';
-	import { Status, statusLabels } from '$lib/models/collection';
+	import { cardVariants, CollectionStatus, statusLabels } from '$lib/models/collection';
 	import { goto } from '$app/navigation';
 	import { GroupRole, type ClassView } from '$lib/models/class_group';
   import { Label } from "$lib/components/ui/label";
   import * as RadioGroup from "$lib/components/ui/radio-group";
 	import { Privilege } from '$lib/models/auth';
+	import { Confirm } from '$lib/components/custom/confirm';
+	import { cancelCollection } from '$lib/api/collection';
 
 
 	let classViewData: ClassView | null = null;
@@ -23,8 +25,10 @@
 	let errorMessage = '';
 	let privilege: Privilege;
   let classId: number;
+  let isConfirmDialogOpen = false;
+  let selectedCollectionIdToCancel = 0;
 
-	async function handleStatusChange(status: Status) {
+	async function handleStatusChange(status: CollectionStatus) {
     classViewData = await getClassView(classId, status);
 	}
 
@@ -39,7 +43,7 @@
 			}
 
 			classId = parseInt(classGroupId, 10);
-			classViewData = await getClassView(classId, Status.OPEN);
+			classViewData = await getClassView(classId, CollectionStatus.OPEN);
 		} catch (error) {
 			showErrorPopup = true;
 			errorMessage = error.message || 'An error occurred while fetching data';
@@ -61,12 +65,44 @@
 	}
 
 	function handleAddCollection() {
-    goto('/main/collections/0');
+    goToCollection(0);
 	}
+
+  function handleDetailsCollection(collection_id: number) {
+    goToCollection(collection_id);
+  }
+
+  function goToCollection(collection_id: number): void {
+    goto(`/main/collections/${collection_id}`);
+  }
+
+  function handleCancelCollection(collection_id: number) {
+    selectedCollectionIdToCancel = collection_id;
+    isConfirmDialogOpen = true;
+  }
+
+  async function confirmCancelCollection() {
+    try {
+      await cancelCollection(selectedCollectionIdToCancel);
+      isConfirmDialogOpen = false;
+      classViewData!.collections = classViewData?.collections.filter(c => c.id !== selectedCollectionIdToCancel);
+      selectedCollectionIdToCancel = 0;
+    } catch (error) {
+			showErrorPopup = true;
+			errorMessage = error.message || 'An error occurred while cancelling collection';
+			setTimeout(() => {
+				showErrorPopup = false;
+			}, 5000);
+		} finally {
+			isLoading = false;
+		}
+  }
 
 	function handleShowReport() {
 	}
 </script>
+
+<Confirm isOpen={isConfirmDialogOpen} onCancel={() => isConfirmDialogOpen = false} onConfirm={confirmCancelCollection} />
 
 <div class="min-h-dvh">
 	{#if showErrorPopup}
@@ -98,8 +134,8 @@
 						<div class="flex items-center gap-2">
 							<span class="text-sm text-muted-foreground">Filter:</span>
               <RadioGroup.Root
-                value={Status.OPEN.toString()}
-                onValueChange={(value) => handleStatusChange(parseInt(value ?? Status.OPEN, 10))}
+                value={CollectionStatus.OPEN.toString()}
+                onValueChange={(value) => handleStatusChange(parseInt(value ?? CollectionStatus.OPEN, 10))}
                 class="flex flex-wrap gap-2">
                 {#each statusLabels as [statusValue, statusLabel]}
                   <div class="flex items-center space-x-2 ms-4">
@@ -111,14 +147,14 @@
 						</div>
 					</div>
 
-					<Button on:click={handleShowReport} class="flex items-center gap-2">
+					<Button on:click={handleShowReport} class="flex items-center gap-2 ms-auto">
 						<Eye class="h-4 w-4" />
             Show report
 					</Button>
 
-					{#if (classViewData.requester?.group_role === GroupRole.CASHIER) || privilege === Privilege.ADMIN_USER}
+					{#if classViewData.requester?.group_role === GroupRole.CASHIER || privilege === Privilege.ADMIN_USER}
             <Button
-              class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
+              class="bg-green-500 text-white mt-auto hover:bg-opacity-85 ms-2"
               on:click={handleAddCollection}>
 							<Plus class="h-4 w-4" />
 							Add collection
@@ -126,7 +162,7 @@
 					{/if}
 				</div>
 
-				<div class="w-full overflow-y-auto max-h-[calc(100vh-250px)] pr-2">
+				<div class="w-full overflow-y-auto max-h-[calc(100vh-250px)]">
 					{#if isLoadingCollections}
 						<div class="flex justify-center items-center h-32">
 							<p>Loading collections...</p>
@@ -136,35 +172,39 @@
 					{:else}
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							{#each classViewData.collections as collection (collection.id)}
-								<Card class="h-full transition-shadow hover:shadow-md">
-									<CardHeader>
-										{#if collection.logo_path}
-											<div class="w-full flex justify-center mb-3">
-												<img
-													src={collection.logo_path}
-													alt={collection.name}
-													class="h-16 w-auto object-contain"
-												/>
-											</div>
-										{/if}
-										<CardTitle>{collection.name}</CardTitle>
-										<CardDescription>{collection.description}</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<div class="flex items-center gap-2 mb-1 text-sm">
-											<Calendar class="h-4 w-4" />
-											<span>From: {formatDate(collection.start_date)}</span>
-										</div>
-										{#if collection.end_date}
-											<div class="flex items-center gap-2 mb-1 text-sm">
-												<Calendar class="h-4 w-4" />
-												<span>To: {formatDate(collection.end_date)}</span>
-											</div>
-										{/if}
+								<Card class={cardVariants.get(collection.status) + "h-full transition-shadow hover:shadow-md"}>
+                  <CardHeader class="flex-row">
+                    {#if collection.logo_path}
+                      <img
+                        class="w-16 h-16 rounded"
+                        src={collection.logo_path}
+                        alt="Avatar" />
+                    {/if}
+                    <div class="flex space-y-1.5 px-6 flex-col">
+                      <CardTitle>{collection.name}</CardTitle>
+                      <CardDescription>{collection.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+									<CardContent class="space-y-2">
+                    <div class="flex gap-2 text-sm">
+                      <div class="flex gap-2">
+                        <Calendar class="h-4 w-4" />
+                        <span>From: {formatDate(collection.start_date)}</span>
+                      </div>
+                      {#if collection.end_date}
+                        <div class="flex gap-2">
+                          <span>to: {formatDate(collection.end_date)}</span>
+                        </div>
+                      {/if}
+                    </div>
+										<div class="text-sm font-semibold">{collection.price.toFixed(2)} PLN</div>
+										<div class="text-sm">{statusLabels.get(collection.status)}</div>
 									</CardContent>
 									<CardFooter class="flex justify-between">
-										<span class="text-sm font-semibold">{collection.price.toFixed(2)} PLN</span>
-										<span class="text-sm">{statusLabels.get(collection.status)}</span>
+                    {#if collection.status === CollectionStatus.OPEN && (privilege === Privilege.ADMIN_USER || classViewData.requester?.group_role === GroupRole.CASHIER)}
+                      <Button variant="destructive" on:click={() => handleCancelCollection(collection.id)}>Cancel</Button>
+                    {/if}
+                    <Button on:click={() => handleDetailsCollection(collection.id)}>Details</Button>
 									</CardFooter>
 								</Card>
 							{/each}

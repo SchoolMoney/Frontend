@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { cardVariants, statusTextColors, Status, type Collection, type GetCollectionsParams } from '$lib/models/collection';
+	import { cardVariants, statusTextColors, CollectionStatus, type Collection, type GetCollectionsParams } from '$lib/models/collection';
 	import { statusLabels } from '$lib/models/collection';
 	import { getCollections } from '$lib/api/collection';
 	import * as Card from '$lib/components/ui/card';
@@ -125,7 +125,7 @@
           <Label for="status">Status</Label>
           <Select.Root
             onSelectedChange={(v) => {
-              params.status = v?.value as Status ?? undefined;
+              params.status = v?.value as CollectionStatus ?? undefined;
             }}>
             <Select.Trigger>
               <Select.Value placeholder="Status" />
@@ -200,16 +200,13 @@
             </div>
           </Card.Header>
           <Card.Content>
-            <div>Started - {collection.start_date}<div>
+            <div>Starts - {collection.start_date}<div>
             {#if collection.end_date}
               <div>Ends - {collection.end_date}</div>
             {/if}
             <div>Status - <span class={statusTextColors.get(collection.status) + " font-semibold"}>{statusLabels.get(collection.status)}</span></div>
           </Card.Content>
           <Card.Footer class="flex justify-between">
-            {#if collection.status === Status.OPEN}
-              <Button variant="destructive">Cancel</Button>
-            {/if}
             <Button class="ms-auto" on:click={(_) => handleDetailsClick(collection.id)}>Details</Button>
           </Card.Footer>
         </Card.Root>

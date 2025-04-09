@@ -20,11 +20,8 @@
 	const ERROR_DISPLAY_TIME = 3000;
 
 	async function fetch_user_classes() {
-
-		console.log(error_message);
 		try {
 			api_response = await getUserClassesUsingJwt();
-			console.log(api_response);
 			if (api_response.length == 0) {
 				error_message = 'No classes found';
 			}
