@@ -44,8 +44,8 @@ export async function login(username: string, password: string) {
 		const { detail } = await resp.json();
 		throw new Error(detail);
 	}
-	const { accessToken }: Token = await resp.json() as Token;
-	setToken(accessToken);
+	const { access_token }: Token = await resp.json() as Token;
+	setToken(access_token);
 }
 
 export async function getUserDetails() {
@@ -115,9 +115,9 @@ export async function refresh(){
 		return null;
 	}
 	if (resp.ok) {
-		const { accessToken }: Token = await resp.json() as Token;
-		setToken(accessToken);
+		const { access_token }: Token = await resp.json() as Token;
+		setToken(access_token);
 	}
 
-	return accessToken.accessToken;
+	return accessToken.access_token;
 }

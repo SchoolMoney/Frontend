@@ -1,5 +1,5 @@
 export type Token = {
-  accessToken: string;
+  access_token: string;
   token_type: string;
   expires: number;
   refresh_token: string;
