@@ -34,5 +34,4 @@ export type UserDetails = {
 
 export type UpdateIdentity = {
   username: string;
-  email?: string;
 }

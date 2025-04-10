@@ -6,7 +6,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Alert from '$lib/components/ui/alert';
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
-	import { logout, updatePassword } from '$lib/api/auth';
+	import { logout, updateIdentity, updatePassword } from '$lib/api/auth';
 	import { goto } from '$app/navigation';
 	import { getUserDetails } from '$lib/api/auth';
 	import { type UpdateIdentity } from '$lib/models/auth';
@@ -15,14 +15,12 @@
 
   let identity: UpdateIdentity = {
     username: '',
-    email: '',
   };
   
 	onMount(async () => {
     const userDetails = await getUserDetails();
     identity = {
       username: userDetails!.username,
-      email: userDetails!.email,
     };
 	});
 
@@ -40,13 +38,10 @@
 			return;
 		}
 
-		// if (!identity!.username) {
-		// 	error = 'Please provide username';
-		// 	return;
-		// }
-
 		try {
-			//await updatePassword(oldPassword, newPassword);
+			await updateIdentity(identity);
+      await logout();
+      goto('/login');
 		} catch (e) {
 			error = (e as Error).message;
 			console.error(error);
@@ -86,15 +81,6 @@
             <div class="space-y-1">
               <Label for="username">Username</Label>
               <Input id="username" required bind:value={identity!.username} placeholder="Enter username" />
-            </div>
-            <div class="space-y-1">
-              <Label for="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                bind:value={identity!.email}
-                placeholder="Enter e-mail"
-              />
             </div>
           </Card.Content>
           <Card.Footer>

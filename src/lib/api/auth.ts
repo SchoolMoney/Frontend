@@ -1,4 +1,4 @@
-import { type Token, type Session, type UserDetails } from '$lib/models/auth';
+import { type Token, type Session, type UserDetails, type UpdateIdentity } from '$lib/models/auth';
 import { jwtDecode } from 'jwt-decode';
 import { baseApiUrl } from '../../config';
 import { goto } from '$app/navigation';
@@ -131,4 +131,8 @@ export async function updatePassword(old_password: string, new_password: string)
     old_password,
     new_password,
   })
+}
+
+export async function updateIdentity(request: UpdateIdentity) {
+  await api_middleware.put('/api/auth/identity', request)
 }
