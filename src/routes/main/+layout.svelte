@@ -186,7 +186,7 @@
 					<Button
 						variant="outline"
 						size="icon"
-						class="overflow-hidden rounded-full"
+						class="overflow-hidden rounded-full {page.url.pathname.includes('account') ? 'border-2 border-primary' : ''}"
 						builders={[builder]}
 					>
 						<img
@@ -194,14 +194,11 @@
 							width={36}
 							height={36}
 							alt="Avatar"
-							class="overflow-hidden rounded-full"
 						/>
 					</Button>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end">
-					<DropdownMenu.Label>My Account</DropdownMenu.Label>
-					<DropdownMenu.Separator />
-					<DropdownMenu.Item>Support</DropdownMenu.Item>
+					<DropdownMenu.Item on:click={()=>{goto('account')}}>Account</DropdownMenu.Item>
 					<DropdownMenu.Separator />
 					<DropdownMenu.Item on:click={()=>{logout(); goto('/login')}}>Logout</DropdownMenu.Item>
 				</DropdownMenu.Content>

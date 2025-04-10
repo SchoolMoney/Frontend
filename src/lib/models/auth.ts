@@ -23,3 +23,16 @@ export type Session = {
   privilege: Privilege;
   status: Status;
 };
+
+export type UserDetails = {
+  id: number;
+  username: string;
+  email?: string;
+  privilege: Privilege;
+  status: Status;
+};
+
+export type UpdateIdentity = {
+  username: string;
+  email?: string;
+}

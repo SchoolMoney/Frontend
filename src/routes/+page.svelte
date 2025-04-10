@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import '../app.css';
 	import { getUserDetails, getToken, removeToken } from '$lib/api/auth';
 	import { onMount } from 'svelte';
 

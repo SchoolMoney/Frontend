@@ -50,8 +50,11 @@ export function useApi(baseUrl = baseApiUrl) {
 				throw new Error(errorData['detail'] || errorData['detail']['msg'] || `Error: ${response.status}`);
 			}
 
-			return await response.json();
+      if (response.status === 204) {
+        return null;
+      }
 
+			return await response.json();
 	}
 
 	// Funkcje pomocnicze do typowych operacji HTTP
