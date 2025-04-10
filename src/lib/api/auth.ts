@@ -1,7 +1,8 @@
-import { type Token, type Session } from '$lib/models/auth';
+import { type Token, type Session, type UserDetails, type UpdateIdentity } from '$lib/models/auth';
 import { jwtDecode } from 'jwt-decode';
 import { baseApiUrl } from '../../config';
 import { goto } from '$app/navigation';
+import { api_middleware } from '../api_middleware';
 
 const TOKEN_KEY = 'access-token';
 
@@ -48,7 +49,7 @@ export async function login(username: string, password: string) {
 	setToken(access_token);
 }
 
-export async function getUserDetails() {
+export async function getUserDetails(): Promise<UserDetails | null> {
 	const token = getToken();
 	if (!token) {
 		throw new Error('User is not authenticated');
@@ -60,9 +61,12 @@ export async function getUserDetails() {
 			'Content-Type': 'application/json'
 		}
 	});
+
 	if (resp.ok) {
-		return await resp.json();
+		return await resp.json() as UserDetails;
 	}
+
+  return null;
 }
 
 export async function logout() {
@@ -120,4 +124,15 @@ export async function refresh(){
 	}
 
 	return accessToken.access_token;
+}
+
+export async function updatePassword(old_password: string, new_password: string) {
+  await api_middleware.put('/api/auth/password', {
+    old_password,
+    new_password,
+  })
+}
+
+export async function updateIdentity(request: UpdateIdentity) {
+  await api_middleware.put('/api/auth/identity', request)
 }
