@@ -27,3 +27,5 @@ export type ClassView = {
   collections: Collection[];
   requester: Requester;
 }
+
+export type UpdateClassGroup = ClassGroup;
