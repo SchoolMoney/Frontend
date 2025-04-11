@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import { addClass, getClasses, updateClass } from '$lib/api/class_group';
+	import { addClass, deleteClass, getClasses, updateClass } from '$lib/api/class_group';
 	import type { AddClassGroup, ClassGroup } from '$lib/models/class_group';
 	import { Card, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { goto } from '$app/navigation';
@@ -12,6 +12,7 @@
 	import { getSessionData } from '$lib/api/auth';
 	import { Privilege } from '$lib/models/auth';
 	import { Input } from '$lib/components/ui/input';
+	import { Confirm } from '$lib/components/custom/confirm';
 
 
 	let errorMessage = '';
@@ -19,12 +20,14 @@
 	let errorTimeout: NodeJS.Timeout;
 
 	let classes: ClassGroup[] = [];
-  let currentClassGroupIdEdit: number = 0;
+  let selectedClassGroupId: number = 0;
+  let selectedClassGroupIdToDelete: number = 0;
   let addClassRequest: AddClassGroup = {
     name: '',
     description: ''
   };
 	let isLoadingClasses = true;
+  let isConfirmDialogOpen = false;
 	let isLoadingParents = true;
   let showAddingClass = false;
 	const ERROR_DISPLAY_TIME = 3_000;
@@ -36,15 +39,16 @@
 				errorMessage = 'No classes found';
 			}
 		} catch (error) {
-			if (error instanceof Error) {
-				errorMessage = error.message;
-				showError();
-			}
+      errorMessage = error.message;
+      showError();
 		}
 	}
 
-	function showError(){
-		if (errorTimeout) clearTimeout(errorTimeout);
+	function showError() {
+    showErrorPopup = true;
+		if (errorTimeout) {
+      clearTimeout(errorTimeout)
+    };
 
 		errorTimeout = setTimeout(() => {
       showErrorPopup = false;
@@ -63,21 +67,36 @@
 	});
 
   function handleClassGroupEditClick(classId: number) {
-    currentClassGroupIdEdit = classId;
+    selectedClassGroupId = classId;
+  }
+
+  function handleClassGroupDeleteClick(classId: number) {
+    selectedClassGroupIdToDelete = classId;
+    isConfirmDialogOpen = true;
+  }
+
+  async function confirmDeleteClassGroup() {
+    try {
+      await deleteClass(selectedClassGroupIdToDelete);
+      isConfirmDialogOpen = false;
+      classes = classes.filter(c => c.id !== selectedClassGroupIdToDelete);
+      selectedClassGroupIdToDelete = 0;
+    } catch (error) {
+      errorMessage = error.message;
+      showError();
+		}
   }
 
   async function handleClassGroupSaveClick() {
 		try {
 			await updateClass({
-        ...classes.find(c => c.id === currentClassGroupIdEdit)!
+        ...classes.find(c => c.id === selectedClassGroupId)!
       });
 
-      currentClassGroupIdEdit = 0;
+      selectedClassGroupId = 0;
 		} catch (error) {
-			if (error instanceof Error) {
-				errorMessage = error.message;
-				showError();
-			}
+      errorMessage = error.message;
+      showError();
 		}
   }
 
@@ -99,20 +118,20 @@
       showAddingClass = false;
       await fetchClasses();
     } catch (error) {
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        showError();
-      }
+      errorMessage = error.message;
+      showErrorPopup = true;
+      showError();
     }
   }
 
 </script>
 
+<Confirm isOpen={isConfirmDialogOpen} onCancel={() => isConfirmDialogOpen = false} onConfirm={confirmDeleteClassGroup} />
 
 <div class="min-h-dvh">
 
 	{#if showErrorPopup}
-		<div class="fixed top-4 right-4 z-50 max-w-md" transition:fly={{ y: -30, duration: 300 }}>
+		<div class="fixed top-4 mx-auto z-50 max-w-md" transition:fly={{ y: -30, duration: 300 }}>
 			<Alert variant="destructive">
 				<CircleX class="h-4 w-4" />
 				<AlertTitle>Error</AlertTitle>
@@ -166,14 +185,14 @@
         <Card class="h-full transition-shadow hover:shadow-md">
           <CardHeader>
             <CardTitle>
-              {#if classGroup.id === currentClassGroupIdEdit}
+              {#if classGroup.id === selectedClassGroupId}
                 <Input bind:value={classGroup.name} placeholder="Edit name" />
               {:else}
                 {classGroup.name}
               {/if}
             </CardTitle>
             <CardDescription>
-              {#if classGroup.id === currentClassGroupIdEdit}
+              {#if classGroup.id === selectedClassGroupId}
                 <Input bind:value={classGroup.description} placeholder="Edit description" />
               {:else}
                 {classGroup.description}
@@ -181,18 +200,25 @@
             </CardDescription>
           </CardHeader>
           <CardContent class="flex justify-between">
-            {#if classGroup.id === currentClassGroupIdEdit}
+            {#if classGroup.id === selectedClassGroupId}
               <Button
                 class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
                 on:click={() => handleClassGroupSaveClick()}>
                 Save
               </Button>
             {:else}
-              <Button
-                class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
-                on:click={() => handleClassGroupEditClick(classGroup.id)}>
-                Edit
-              </Button>
+              <div>
+                <Button
+                  class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
+                  on:click={() => handleClassGroupEditClick(classGroup.id)}>
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  on:click={() => handleClassGroupDeleteClick(classGroup.id)}>
+                  Delete
+                </Button>
+              </div>
             {/if}
             <Button
               on:click={() => handleClassGroupDetailsClick(classGroup.id)}>

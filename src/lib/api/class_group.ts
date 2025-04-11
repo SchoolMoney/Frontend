@@ -31,17 +31,16 @@ export async function getClasses() {
 }
 
 export async function updateClass(request: UpdateClassGroup) {
-	try {
-		return await api_middleware.put(`/api/class_group/${request.id}`, request);
-	} catch (error){
-		console.error(error);
-		throw error;
-	}
+  return await api_middleware.put(`/api/class_group/${request.id}`, request);
 }
 
 export async function addClass(request: AddClassGroup): Promise<ClassGroup> {
+  return await api_middleware.post(`/api/class_group`, request);
+}
+
+export async function deleteClass(class_id: number) {
 	try {
-		return await api_middleware.post(`/api/class_group`, request);
+		return await api_middleware.delete(`/api/class_group/${class_id}`);
 	} catch (error){
 		console.error(error);
 		throw error;

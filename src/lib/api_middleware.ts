@@ -47,7 +47,7 @@ export function useApi(baseUrl = baseApiUrl) {
 
 			if (!response.ok) {
 				const errorData = await response.json();
-				throw new Error(errorData['detail'] || errorData['detail']['msg'] || `Error: ${response.status}`);
+				throw new Error(errorData['detail'] ?? errorData['detail']['msg'] ?? `Error: ${response.status}`);
 			}
 
       if (response.status === 204) {
