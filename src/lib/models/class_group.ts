@@ -27,3 +27,9 @@ export type ClassView = {
   collections: Collection[];
   requester: Requester;
 }
+
+export type UpdateClassGroup = ClassGroup;
+export type AddClassGroup = {
+  name: string;
+  description: string;
+}

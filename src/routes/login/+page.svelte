@@ -73,7 +73,7 @@
 							<Card.Content class="space-y-2">
 								<div class="space-y-1">
 									<Label for="username">Username</Label>
-									<Input id="username" bind:value={username} placeholder="username" />
+									<Input id="username" bind:value={username} placeholder="Enter username" />
 								</div>
 								<div class="space-y-1">
 									<Label for="password">Password</Label>
@@ -81,7 +81,7 @@
 										id="password"
 										type="password"
 										bind:value={password}
-										placeholder="password"
+										placeholder="Enter password"
 									/>
 								</div>
 							</Card.Content>
@@ -101,7 +101,7 @@
 							<Card.Content class="space-y-2">
 								<div class="space-y-1">
 									<Label for="register-username">Username</Label>
-									<Input id="register-username" bind:value={username} placeholder="username" />
+									<Input id="register-username" bind:value={username} placeholder="Enter username" />
 								</div>
 								<div class="space-y-1">
 									<Label for="register-password">Password</Label>
@@ -109,7 +109,7 @@
 										id="register-password"
 										bind:value={password}
 										type="password"
-										placeholder="password"
+										placeholder="Enter password"
 									/>
 								</div>
 								<div class="space-y-1">
@@ -118,7 +118,7 @@
 										id="confirm-password"
 										bind:value={confirmPassword}
 										type="password"
-										placeholder="confirm password"
+										placeholder="Confirm password"
 									/>
 								</div>
 							</Card.Content>
