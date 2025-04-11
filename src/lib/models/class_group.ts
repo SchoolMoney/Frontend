@@ -29,3 +29,7 @@ export type ClassView = {
 }
 
 export type UpdateClassGroup = ClassGroup;
+export type AddClassGroup = {
+  name: string;
+  description: string;
+}

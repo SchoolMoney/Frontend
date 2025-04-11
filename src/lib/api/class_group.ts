@@ -1,5 +1,5 @@
 import { api_middleware } from "$lib/api_middleware"
-import type { UpdateClassGroup } from "../models/class_group";
+import type { AddClassGroup, ClassGroup, UpdateClassGroup } from "../models/class_group";
 import type { CollectionStatus } from "../models/collection";
 
 
@@ -33,6 +33,15 @@ export async function getClasses() {
 export async function updateClass(request: UpdateClassGroup) {
 	try {
 		return await api_middleware.put(`/api/class_group/${request.id}`, request);
+	} catch (error){
+		console.error(error);
+		throw error;
+	}
+}
+
+export async function addClass(request: AddClassGroup): Promise<ClassGroup> {
+	try {
+		return await api_middleware.post(`/api/class_group`, request);
 	} catch (error){
 		console.error(error);
 		throw error;
