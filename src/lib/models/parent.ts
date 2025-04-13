@@ -1,3 +1,4 @@
+import type { Status } from './auth';
 import type { Child } from './child';
 
 export type Parent = {
@@ -8,6 +9,7 @@ export type Parent = {
   city: string;
   street: string;
   house_number: string;
+  status: Status;
 
   children: Child[];
 }
