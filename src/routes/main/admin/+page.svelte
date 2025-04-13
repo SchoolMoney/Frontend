@@ -153,7 +153,7 @@
       <h2 class="text-center text-4xl w-full font-bold col-span-2">
         Classes
         <Button
-          class="bg-green-600 bg-opacity-0 hover:bg-opacity-10 text-green-600 mt-auto"
+          class="bg-transparent hover:bg-green-600/10 text-green-600 mt-auto"
           on:click={() => handleAddClassClick()}>
           <Plus class="h-4 w-4" />
         </Button>
