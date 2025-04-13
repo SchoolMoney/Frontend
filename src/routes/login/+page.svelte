@@ -9,17 +9,26 @@
 	import { register, login } from '$lib/api/auth';
 	import { goto } from '$app/navigation';
   import { appName } from '../../config';
+	import type { AddParent } from '$lib/models/parent';
+	import { addParent } from '../../lib/api/parent';
 
 	let selectedTab: 'login' | 'register' = 'login';
 
 	let username = '';
 	let password = '';
 	let confirmPassword = '';
+  const addParentRequest: AddParent = {
+    name: '',
+    surname: '',
+    phone: '',
+    city: '',
+    street: '',
+    house_number: '',
+  };
 
 	let error = '';
 
 	async function handleLogin() {
-		console.log(error);
 		if (!username || !password) {
 			error = 'Please provide email and password';
 			return;
@@ -30,23 +39,24 @@
 			goto('/');
 		} catch (e) {
 			error = (e as Error).message;
-			console.log(error);
 		}
 	}
 
 	async function handleRegister() {
-		if (!username || !password || !confirmPassword) {
-			error = 'Please provide all fields';
-			return;
-		}
 		if (password !== confirmPassword) {
 			error = 'Passwords do not match';
 			return;
 		}
 
+    if (password.length < 12) {
+      error = 'Weak Password. Minimum 12 chars required!'
+      return;
+    }
+
 		try {
 			await register(username, password);
-			handleLogin();
+			await handleLogin();
+      await addParent(addParentRequest);
 		} catch (e) {
 			error = (e as Error).message;
 		}
@@ -73,12 +83,13 @@
 							<Card.Content class="space-y-2">
 								<div class="space-y-1">
 									<Label for="username">Username</Label>
-									<Input id="username" bind:value={username} placeholder="Enter username" />
+									<Input required id="username" bind:value={username} placeholder="Enter username" />
 								</div>
 								<div class="space-y-1">
 									<Label for="password">Password</Label>
 									<Input
 										id="password"
+                    required
 										type="password"
 										bind:value={password}
 										placeholder="Enter password"
@@ -98,27 +109,84 @@
 							<Card.Description>Create new account</Card.Description>
 						</Card.Header>
 						<form on:submit={handleRegister}>
-							<Card.Content class="space-y-2">
-								<div class="space-y-1">
+							<Card.Content class="grid gap-2">
+								<div>
 									<Label for="register-username">Username</Label>
-									<Input id="register-username" bind:value={username} placeholder="Enter username" />
+									<Input id="register-username" required bind:value={username} placeholder="Enter username" />
 								</div>
-								<div class="space-y-1">
+								<div>
 									<Label for="register-password">Password</Label>
 									<Input
 										id="register-password"
+                    required
 										bind:value={password}
 										type="password"
 										placeholder="Enter password"
 									/>
 								</div>
-								<div class="space-y-1">
+								<div>
 									<Label for="confirm-password">Confirm password</Label>
 									<Input
 										id="confirm-password"
+                    required
 										bind:value={confirmPassword}
 										type="password"
 										placeholder="Confirm password"
+									/>
+								</div>
+								<div>
+									<Label for="name">Name</Label>
+									<Input
+										id="name"
+                    required
+										bind:value={addParentRequest.name}
+										placeholder="Enter name"
+									/>
+								</div>
+								<div>
+									<Label for="surname">Surname</Label>
+									<Input
+										id="surname"
+                    required
+										bind:value={addParentRequest.surname}
+										placeholder="Enter surname"
+									/>
+								</div>
+								<div>
+									<Label for="phone">Phone</Label>
+									<Input
+										id="phone"
+                    required
+                    type="tel"
+										bind:value={addParentRequest.phone}
+										placeholder="Enter phone"
+									/>
+								</div>
+								<div>
+									<Label for="city">City</Label>
+									<Input
+										id="city"
+                    required
+										bind:value={addParentRequest.city}
+										placeholder="Enter city"
+									/>
+								</div>
+								<div>
+									<Label for="street">Street</Label>
+									<Input
+										id="street"
+                    required
+										bind:value={addParentRequest.street}
+										placeholder="Enter street"
+									/>
+								</div>
+								<div>
+									<Label for="house_number">House number</Label>
+									<Input
+										id="house_number"
+                    required
+										bind:value={addParentRequest.house_number}
+										placeholder="Enter house number"
 									/>
 								</div>
 							</Card.Content>

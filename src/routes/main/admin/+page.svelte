@@ -3,17 +3,23 @@
 	import { fly } from 'svelte/transition';
 	import { addClass, deleteClass, getClasses, updateClass } from '$lib/api/class_group';
 	import type { AddClassGroup, ClassGroup } from '$lib/models/class_group';
+	import type { Parent } from '$lib/models/parent';
 	import { Card, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { goto } from '$app/navigation';
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
-	import { CircleX, Plus } from 'lucide-svelte';
+	import { CircleX, Plus, Pencil, Trash, Phone, Baby } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import CardContent from '$lib/components/ui/card/card-content.svelte';
 	import { getSessionData } from '$lib/api/auth';
 	import { Privilege } from '$lib/models/auth';
 	import { Input } from '$lib/components/ui/input';
 	import { Confirm } from '$lib/components/custom/confirm';
-
+	import { getParents } from '$lib/api/parent';
+	import type { AddChild, Child, UpdateChild } from '$lib/models/child';
+	import { addChild, getChildren, updateChild } from '$lib/api/child';
+	import * as Select from '$lib/components/ui/select';
+  
+  const ERROR_DISPLAY_TIME = 3_000;
 
 	let errorMessage = '';
 	let showErrorPopup = false;
@@ -28,21 +34,42 @@
   };
 	let isLoadingClasses = true;
   let isConfirmDialogOpen = false;
-	let isLoadingParents = true;
   let showAddingClass = false;
-	const ERROR_DISPLAY_TIME = 3_000;
+
+	let parents: Parent[] = [];
+  let addChildRequest: AddChild = {
+    name: '',
+    surname: '',
+    birth_date: undefined,
+    parent_id: 0,
+    group_id: 0,
+  };
+  let childToUpdate: Child & {
+    parent_id: number;
+  };
+	let isLoadingParents = true;
+
+  function getClassName(class_id: number): string {
+    return classes.find(c => c.id === class_id)?.name ?? '';
+  }
 
 	async function fetchClasses() {
 		try {
 			classes = await getClasses();
-			if (classes.length == 0) {
-				errorMessage = 'No classes found';
-			}
 		} catch (error) {
       errorMessage = error.message;
       showError();
 		}
 	}
+
+  async function fetchParents() {
+    try {
+      parents = await getParents();
+    } catch (error) {
+      errorMessage = error.message;
+      showError();
+    }
+  }
 
 	function showError() {
     showErrorPopup = true;
@@ -64,6 +91,13 @@
 
 		await fetchClasses();
 		isLoadingClasses = false;
+
+    await fetchParents();
+    for (let i = 0; i < parents.length; i += 1) {
+      parents[i].children = await getChildren([parents[i].id]);
+    }
+
+    isLoadingParents = false;
 	});
 
   function handleClassGroupEditClick(classId: number) {
@@ -100,6 +134,10 @@
 		}
   }
 
+  function handleClassGroupCancelClick() {
+    selectedClassGroupId = 0;
+  }
+
 	function handleClassGroupDetailsClick(classId: number) {
 		goto(`/main/classes/class-view?class_group_id=${classId}`);
 	}
@@ -108,7 +146,11 @@
     showAddingClass = true;
   }
 
-  async function handleClassGroupAddClick() {
+  function handleCancelAddClassClick() {
+    showAddingClass = false;
+  }
+
+  async function handleAddClassGroupSaveClick() {
     try {
       await addClass(addClassRequest);
       addClassRequest = {
@@ -119,7 +161,76 @@
       await fetchClasses();
     } catch (error) {
       errorMessage = error.message;
-      showErrorPopup = true;
+      showError();
+    }
+  }
+
+  function handleAddParentChildClick({ id, surname }: Parent) {
+    addChildRequest.parent_id = id;
+    addChildRequest.surname = surname;
+  }
+
+  function handleCancelAddParentChildClick() {
+    addChildRequest = {
+      name: '',
+      surname: '',
+      birth_date: undefined,
+      parent_id: 0,
+      group_id: 0,
+    };
+  }
+
+  async function handleAddParentChildSaveClick() {
+    try {
+      const newParentChild = await addChild(addChildRequest);
+      const index = parents.findIndex(p => p.id === addChildRequest.parent_id);
+      const children = [
+        newParentChild,
+        ...parents[index].children,
+      ];
+      children.push();
+      parents[index].children = children;
+      addChildRequest = {
+        name: '',
+        surname: '',
+        birth_date: undefined,
+        parent_id: 0,
+        group_id: 0,
+      };
+    } catch (error) {
+      errorMessage = error.message;
+      showError();
+    }
+  }
+
+  function handleEditParentChildClick(child: Child, parent_id: number) {
+    childToUpdate = {
+      ...child,
+      parent_id,
+    };
+  }
+
+  function handleCancelEditParentChildClick() {
+    childToUpdate = undefined;
+  }
+
+  async function handleEditParentChildSaveClick() {
+    try {
+      await updateChild(childToUpdate.id, {
+        name: childToUpdate.name,
+        surname: childToUpdate.surname,
+        birth_date: childToUpdate.birth_date,
+        group_id: childToUpdate.group_id,
+      });
+
+      const parentIndex = parents.findIndex(p => p.id === childToUpdate.parent_id);
+      const childIndex = parents[parentIndex].children.findIndex(c => c.id === childToUpdate.id);
+      parents[parentIndex].children[childIndex] = {
+        ...childToUpdate
+      };
+      childToUpdate = undefined;
+    } catch (error) {
+      errorMessage = error.message;
       showError();
     }
   }
@@ -145,8 +256,8 @@
       <h2 class="text-center text-4xl w-full font-bold col-span-2">
         Classes
         <Button
-          class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
-          on:click={() => handleAddClassClick()}>
+          class="bg-transparent hover:bg-green-600/10 text-green-600 mt-auto"
+          on:click={handleAddClassClick}>
           <Plus class="h-4 w-4" />
         </Button>
       </h2>
@@ -162,101 +273,197 @@
       {/if}
 
       {#if showAddingClass}
-        <Card class="h-full transition-shadow hover:shadow-md">
-          <CardHeader>
-            <CardTitle>
-              <Input bind:value={addClassRequest.name} placeholder="Set name" />
-            </CardTitle>
-            <CardDescription>
-              <Input bind:value={addClassRequest.description} placeholder="Set description" />
-            </CardDescription>
-          </CardHeader>
-          <CardContent class="flex justify-end">
-            <Button
-              class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
-              on:click={() => handleClassGroupAddClick()}>
-              Save
-            </Button>
-          </CardContent>
-        </Card>
+        <form on:submit={handleAddClassGroupSaveClick}>
+          <Card class="h-full transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle>
+                <Input required bind:value={addClassRequest.name} placeholder="Set name" />
+              </CardTitle>
+              <CardDescription>
+                <Input bind:value={addClassRequest.description} placeholder="Set description" />
+              </CardDescription>
+            </CardHeader>
+            <CardContent class="flex justify-end gap-2">
+              <Button
+                variant="secondary"
+                on:click={handleCancelAddClassClick}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                Save
+              </Button>
+            </CardContent>
+          </Card>
+        </form>
       {/if}
 
       {#each classes as classGroup (classGroup.id)}
-        <Card class="h-full transition-shadow hover:shadow-md">
-          <CardHeader>
-            <CardTitle>
+        <form on:submit={handleClassGroupSaveClick}>
+          <Card class="h-full transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle>
+                {#if classGroup.id === selectedClassGroupId}
+                  <Input required bind:value={classGroup.name} placeholder="Edit name" />
+                {:else}
+                  {classGroup.name}
+                {/if}
+              </CardTitle>
+              <CardDescription>
+                {#if classGroup.id === selectedClassGroupId}
+                  <Input bind:value={classGroup.description} placeholder="Edit description" />
+                {:else}
+                  {classGroup.description}
+                {/if}
+              </CardDescription>
+            </CardHeader>
+            <CardContent class="flex justify-between">
               {#if classGroup.id === selectedClassGroupId}
-                <Input bind:value={classGroup.name} placeholder="Edit name" />
+                <div class="flex justify-end gap-2 w-full">
+                  <Button
+                    variant="secondary"
+                    on:click={handleClassGroupCancelClick}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                    Save
+                  </Button>
+                </div>
               {:else}
-                {classGroup.name}
-              {/if}
-            </CardTitle>
-            <CardDescription>
-              {#if classGroup.id === selectedClassGroupId}
-                <Input bind:value={classGroup.description} placeholder="Edit description" />
-              {:else}
-                {classGroup.description}
-              {/if}
-            </CardDescription>
-          </CardHeader>
-          <CardContent class="flex justify-between">
-            {#if classGroup.id === selectedClassGroupId}
-              <Button
-                class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
-                on:click={() => handleClassGroupSaveClick()}>
-                Save
-              </Button>
-            {:else}
-              <div>
+                <div>
+                  <Button 
+                    class="bg-transparent text-green-600 hover:bg-green-600/10 p-2"
+                    on:click={() => handleClassGroupEditClick(classGroup.id)}>
+                    <Pencil class="scale-75" />
+                  </Button>
+                  <Button 
+                    class="bg-transparent text-red-600 hover:bg-red-600/10 p-2"
+                    on:click={() => handleClassGroupDeleteClick(classGroup.id)}>
+                    <Trash class="scale-75" />
+                  </Button>
+                </div>
                 <Button
-                  class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
-                  on:click={() => handleClassGroupEditClick(classGroup.id)}>
-                  Edit
+                  on:click={() => handleClassGroupDetailsClick(classGroup.id)}>
+                  Details
                 </Button>
-                <Button
-                  variant="destructive"
-                  on:click={() => handleClassGroupDeleteClick(classGroup.id)}>
-                  Delete
-                </Button>
-              </div>
-            {/if}
-            <Button
-              on:click={() => handleClassGroupDetailsClick(classGroup.id)}>
-              Details
-            </Button>
-          </CardContent>
-        </Card>
+              {/if}
+            </CardContent>
+          </Card>
+        </form>
       {/each}
     </div>
     <div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8 p-4">
       <h2 class="text-center text-4xl w-full font-bold col-span-2">Parents</h2>
   
-      {#if isLoadingClasses}
+      {#if isLoadingParents}
         <div class="flex justify-center items-center h-64 col-span-2">
           <p>Loading parents...</p>
         </div>
-      {:else if classes.length === 0}
+      {:else if !classes?.length}
         <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20 col-span-2">
           No parents found.
         </div>
       {/if}
 
-      {#each classes as classGroup (classGroup.id)}
-        <Card class="h-full transition-shadow hover:shadow-md">
+      {#each parents as parent (parent.id)}
+        <Card class="transition-shadow hover:shadow-md relative">
           <CardHeader>
-            <CardTitle>{classGroup.name}</CardTitle>
-            <CardDescription>{classGroup.description}</CardDescription>
+            <CardTitle class="flex">{parent.name} {parent.surname} (<a class="flex rounded text-blue-700 hover:bg-primary-600" href="callto:{parent.phone}"><Phone class="scale-50"/>{parent.phone}</a>)</CardTitle>
+            <CardDescription>{parent.city} {parent.street} {parent.house_number}</CardDescription>
           </CardHeader>
-          <CardContent class="flex justify-between">
-            <Button
-              class="bg-green-500 text-white mt-auto hover:bg-opacity-85"
-              on:click={() => handleClassGroupEditClick(classGroup.id)}>
-              Edit
-            </Button>
-            <Button
-              on:click={() => handleClassGroupDetailsClick(classGroup.id)}>
-              Details
-            </Button>
+          <CardContent>
+            {#if addChildRequest.parent_id !== parent.id && childToUpdate?.parent_id !== parent.id}
+              <Button class="absolute right-5 top-5 bg-green-600 hover:bg-green-600/90 text-white" on:click={() => handleAddParentChildClick(parent)}>
+                <Baby class="scale-75" />Add child
+              </Button>
+              Children:
+              <ul class="grid gap-2 mt-2">
+                {#each parent.children as child (child.id)}
+                  <li class="flex align-center">
+                    <Button
+                      class="bg-transparent text-green-600 hover:bg-green-600/10 p-0 h-auto"
+                      on:click={() => handleEditParentChildClick(child, parent.id)}>
+                      <Pencil class="scale-50" />
+                    </Button>
+                    <span>{child.name} {child.surname} {child.birth_date} (Class: {getClassName(child.group_id)})</span>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+
+            {#if parent.id === addChildRequest.parent_id}
+              <form on:submit={handleAddParentChildSaveClick} class="grid gap-2">
+                <div class="grid gap-2 grid-cols-2 grid-rows-2">
+                  <Input required bind:value={addChildRequest.name} placeholder="Enter name" />
+                  <Input required bind:value={addChildRequest.surname} placeholder="Enter surname" />
+                  <Input required type="date" bind:value={addChildRequest.birth_date} placeholder="Enter birth date" />
+                  <Select.Root
+                    onSelectedChange={(v) => {
+                      addChildRequest.group_id = v?.value ?? 0;
+                    }}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Select class group" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each classes as classGroup}
+                        <Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <Button
+                    variant="secondary"
+                    on:click={handleCancelAddParentChildClick}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                    Save
+                  </Button>
+                </div>
+              </form>
+            {/if}
+
+            {#if parent.id === childToUpdate?.parent_id}
+              <form on:submit={handleEditParentChildSaveClick} class="grid gap-2 mt-2">
+                <div class="grid gap-2 grid-cols-2 grid-rows-2">
+                  <Input required bind:value={childToUpdate.name} placeholder="Enter name" />
+                  <Input required bind:value={childToUpdate.surname} placeholder="Enter surname" />
+                  <Input required type="date" bind:value={childToUpdate.birth_date} placeholder="Enter birth date" />
+                  <Select.Root
+                    selected={ {value: childToUpdate.group_id, label: getClassName(childToUpdate.group_id) } }
+                    onSelectedChange={(v) => {
+                      childToUpdate.group_id = v?.value ?? 0;
+                    }}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Select class group" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each classes as classGroup}
+                        <Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <Button
+                    variant="secondary"
+                    on:click={handleCancelEditParentChildClick}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                    Save
+                  </Button>
+                </div>
+              </form>
+            {/if}
           </CardContent>
         </Card>
       {/each}
