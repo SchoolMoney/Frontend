@@ -7,7 +7,7 @@
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '$lib/components/ui/card';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
-	import { CircleX, Plus, Calendar, Eye } from 'lucide-svelte';
+	import { CircleX, Files, HandCoins, Calendar } from 'lucide-svelte';
 	import { cardVariants, CollectionStatus, statusLabels } from '$lib/models/collection';
 	import { goto } from '$app/navigation';
 	import { GroupRole, type ClassView } from '$lib/models/class_group';
@@ -148,7 +148,7 @@
 					</div>
 
 					<Button on:click={handleShowReport} class="flex items-center gap-2 ms-auto">
-						<Eye class="h-4 w-4" />
+						<Files class="h-4 w-4" />
             Show report
 					</Button>
 
@@ -156,7 +156,7 @@
             <Button
               class="bg-green-500 text-white mt-auto hover:bg-opacity-85 ms-2"
               on:click={handleAddCollection}>
-							<Plus class="h-4 w-4" />
+							<HandCoins class="h-4 w-4" />
 							Add collection
 						</Button>
 					{/if}
