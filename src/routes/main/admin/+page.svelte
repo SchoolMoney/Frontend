@@ -3,18 +3,21 @@
 	import { fly } from 'svelte/transition';
 	import { addClass, deleteClass, getClasses, updateClass } from '$lib/api/class_group';
 	import type { AddClassGroup, ClassGroup } from '$lib/models/class_group';
-	import type { AddParent, Parent } from '$lib/models/parent';
+	import type { Parent } from '$lib/models/parent';
 	import { Card, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { goto } from '$app/navigation';
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
-	import { CircleX, Plus, Pencil, Trash, Phone } from 'lucide-svelte';
+	import { CircleX, Plus, Pencil, Trash, Phone, Baby } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import CardContent from '$lib/components/ui/card/card-content.svelte';
 	import { getSessionData } from '$lib/api/auth';
 	import { Privilege } from '$lib/models/auth';
 	import { Input } from '$lib/components/ui/input';
 	import { Confirm } from '$lib/components/custom/confirm';
-	import { addParent, getParents } from '../../../lib/api/parent';
+	import { getParents } from '$lib/api/parent';
+	import type { AddChild, Child, UpdateChild } from '$lib/models/child';
+	import { addChild, getChildren, updateChild } from '$lib/api/child';
+	import * as Select from '$lib/components/ui/select';
   
   const ERROR_DISPLAY_TIME = 3_000;
 
@@ -32,16 +35,25 @@
 	let isLoadingClasses = true;
   let isConfirmDialogOpen = false;
   let showAddingClass = false;
+  let showAddingParentChild = false;
+  let showEditingParentChild = false;
 
 	let parents: Parent[] = [];
-  let addParentRequest: AddParent = {
-    username: '',
-    password: '',
-    confirmPassword: '',
+  let addChildRequest: AddChild = {
     name: '',
     surname: '',
+    birth_date: undefined,
+    parent_id: 0,
+    group_id: 0,
+  };
+  let childToUpdate: Child & {
+    parent_id: number;
   };
 	let isLoadingParents = true;
+
+  function getClassName(class_id: number): string {
+    return classes.find(c => c.id === class_id)?.name ?? '';
+  }
 
 	async function fetchClasses() {
 		try {
@@ -52,14 +64,14 @@
 		}
 	}
 
-async function fetchParents() {
-  try {
-    parents = await getParents();
-  } catch (error) {
-    errorMessage = error.message;
-    showError();
+  async function fetchParents() {
+    try {
+      parents = await getParents();
+    } catch (error) {
+      errorMessage = error.message;
+      showError();
+    }
   }
-}
 
 	function showError() {
     showErrorPopup = true;
@@ -83,6 +95,10 @@ async function fetchParents() {
 		isLoadingClasses = false;
 
     await fetchParents();
+    for (let i = 0; i < parents.length; i += 1) {
+      parents[i].children = await getChildren([parents[i].id]);
+    }
+
     isLoadingParents = false;
 	});
 
@@ -147,7 +163,81 @@ async function fetchParents() {
       await fetchClasses();
     } catch (error) {
       errorMessage = error.message;
-      showErrorPopup = true;
+      showError();
+    }
+  }
+
+  function handleAddParentChildClick({ id, surname }: Parent) {
+    showAddingParentChild = true;
+    addChildRequest.parent_id = id;
+    addChildRequest.surname = surname;
+  }
+
+  function handleCancelAddParentChildClick() {
+    showAddingParentChild = false;
+    addChildRequest = {
+      name: '',
+      surname: '',
+      birth_date: undefined,
+      parent_id: 0,
+      group_id: 0,
+    };
+  }
+
+  async function handleAddParentChildSaveClick() {
+    try {
+      const newParentChild = await addChild(addChildRequest);
+      const index = parents.findIndex(p => p.id === addChildRequest.parent_id);
+      const children = [
+        newParentChild,
+        ...parents[index].children,
+      ];
+      children.push();
+      parents[index].children = children;
+      showAddingParentChild = false;
+      addChildRequest = {
+        name: '',
+        surname: '',
+        birth_date: undefined,
+        parent_id: 0,
+        group_id: 0,
+      };
+    } catch (error) {
+      errorMessage = error.message;
+      showError();
+    }
+  }
+
+  function handleEditParentChildClick(child: Child, parent_id: number) {
+    showEditingParentChild = true;
+    childToUpdate = {
+      ...child,
+      parent_id,
+    };
+  }
+
+  function handleCancelEditParentChildClick() {
+    showEditingParentChild = false;
+  }
+
+  async function handleEditParentChildSaveClick() {
+    try {
+      await updateChild(childToUpdate.id, {
+        name: childToUpdate.name,
+        surname: childToUpdate.surname,
+        birth_date: childToUpdate.birth_date,
+        group_id: childToUpdate.group_id,
+      });
+
+      const parentIndex = parents.findIndex(p => p.id === childToUpdate.parent_id);
+      const childIndex = parents[parentIndex].children.findIndex(c => c.id === childToUpdate.id);
+      parents[parentIndex].children[childIndex] = {
+        ...childToUpdate
+      };
+
+      showEditingParentChild = false;
+    } catch (error) {
+      errorMessage = error.message;
       showError();
     }
   }
@@ -174,7 +264,7 @@ async function fetchParents() {
         Classes
         <Button
           class="bg-transparent hover:bg-green-600/10 text-green-600 mt-auto"
-          on:click={() => handleAddClassClick()}>
+          on:click={handleAddClassClick}>
           <Plus class="h-4 w-4" />
         </Button>
       </h2>
@@ -279,20 +369,108 @@ async function fetchParents() {
         <div class="flex justify-center items-center h-64 col-span-2">
           <p>Loading parents...</p>
         </div>
-      {:else if classes.length === 0}
+      {:else if !classes?.length}
         <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20 col-span-2">
           No parents found.
         </div>
       {/if}
 
       {#each parents as parent (parent.id)}
-        <Card class="h-full transition-shadow hover:shadow-md">
+        <Card class="transition-shadow hover:shadow-md relative">
           <CardHeader>
-            <CardTitle>{parent.name} {parent.surname} ({parent.phone})</CardTitle>
+            <CardTitle class="flex">{parent.name} {parent.surname} (<a class="flex rounded text-blue-700 hover:bg-primary-600" href="callto:{parent.phone}"><Phone class="scale-50"/>{parent.phone}</a>)</CardTitle>
             <CardDescription>{parent.city} {parent.street} {parent.house_number}</CardDescription>
           </CardHeader>
-          <CardContent class="flex justify-between">
-            TODO: Listing children
+          <CardContent>
+            {#if showAddingParentChild === false && showEditingParentChild === false}
+              <Button class="absolute right-5 top-5 bg-green-600 hover:bg-green-600/90 text-white" on:click={() => handleAddParentChildClick(parent)}>
+                <Baby class="scale-75" />Add child
+              </Button>
+              Children:
+              <ul class="grid gap-2 mt-2">
+                {#each parent.children as child (child.id)}
+                  <li class="flex align-center">
+                    <Button
+                      class="bg-transparent text-green-600 hover:bg-green-600/10 p-0 h-auto"
+                      on:click={() => handleEditParentChildClick(child, parent.id)}>
+                      <Pencil class="scale-50" />
+                    </Button>
+                    <span>{child.name} {child.surname} {child.birth_date} (Class: {getClassName(child.group_id)})</span>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+
+            {#if showAddingParentChild && parent.id === addChildRequest.parent_id}
+              <form on:submit={handleAddParentChildSaveClick} class="grid gap-2">
+                <div class="grid gap-2 grid-cols-2 grid-rows-2">
+                  <Input required bind:value={addChildRequest.name} placeholder="Enter name" />
+                  <Input required bind:value={addChildRequest.surname} placeholder="Enter surname" />
+                  <Input required type="date" bind:value={addChildRequest.birth_date} placeholder="Enter birth date" />
+                  <Select.Root
+                    onSelectedChange={(v) => {
+                      addChildRequest.group_id = v?.value ?? 0;
+                    }}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Select class group" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each classes as classGroup}
+                        <Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <Button
+                    variant="secondary"
+                    on:click={handleCancelAddParentChildClick}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                    Save
+                  </Button>
+                </div>
+              </form>
+            {/if}
+
+            {#if showEditingParentChild}
+              <form on:submit={handleEditParentChildSaveClick} class="grid gap-2 mt-2">
+                <div class="grid gap-2 grid-cols-2 grid-rows-2">
+                  <Input required bind:value={childToUpdate.name} placeholder="Enter name" />
+                  <Input required bind:value={childToUpdate.surname} placeholder="Enter surname" />
+                  <Input required type="date" bind:value={childToUpdate.birth_date} placeholder="Enter birth date" />
+                  <Select.Root
+                    selected={ {value: childToUpdate.group_id, label: getClassName(childToUpdate.group_id) } }
+                    onSelectedChange={(v) => {
+                      childToUpdate.group_id = v?.value ?? 0;
+                    }}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Select class group" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each classes as classGroup}
+                        <Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <Button
+                    variant="secondary"
+                    on:click={handleCancelEditParentChildClick}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                    Save
+                  </Button>
+                </div>
+              </form>
+            {/if}
           </CardContent>
         </Card>
       {/each}

@@ -1,3 +1,5 @@
+import type { Child } from './child';
+
 export type Parent = {
   id: number;
   name: string;
@@ -6,6 +8,8 @@ export type Parent = {
   city: string;
   street: string;
   house_number: string;
+
+  children: Child[];
 }
 
 export type AddParent = {
