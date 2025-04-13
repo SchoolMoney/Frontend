@@ -1,8 +1,9 @@
-import { type Token, type Session, type UserDetails, type UpdateIdentity } from '$lib/models/auth';
+import { type Token, type Session, type UserDetails, type UpdateIdentity, type UpdateParentProfile } from '$lib/models/auth';
 import { jwtDecode } from 'jwt-decode';
 import { baseApiUrl } from '../../config';
 import { goto } from '$app/navigation';
 import { api_middleware } from '../api_middleware';
+import type { Parent } from '../models/parent';
 
 const TOKEN_KEY = 'access-token';
 
@@ -127,12 +128,30 @@ export async function refresh(){
 }
 
 export async function updatePassword(old_password: string, new_password: string) {
-  await api_middleware.put('/api/auth/password', {
+  await api_middleware.put('/api/auth/password/', {
     old_password,
     new_password,
   })
 }
 
 export async function updateIdentity(request: UpdateIdentity) {
-  await api_middleware.put('/api/auth/identity', request)
+  await api_middleware.put('/api/auth/identity/', request)
+}
+
+export async function getUserParentProfile(): Promise<Parent> {
+  try {
+    return await api_middleware.get(`/api/parent/user/`);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
+export async function updateUserParentProfile(request: UpdateParentProfile) {
+  try {
+    await api_middleware.put(`/api/parent/user/`, request);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
 }

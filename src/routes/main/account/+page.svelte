@@ -6,21 +6,27 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Alert from '$lib/components/ui/alert';
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
-	import { logout, updateIdentity, updatePassword } from '$lib/api/auth';
+	import { getUserParentProfile, logout, updateIdentity, updatePassword, updateUserParentProfile } from '$lib/api/auth';
 	import { goto } from '$app/navigation';
 	import { getUserDetails } from '$lib/api/auth';
-	import { type UpdateIdentity } from '$lib/models/auth';
+	import { type Identity } from '$lib/models/auth';
 	import { onMount } from 'svelte';
 
 
-  let identity: UpdateIdentity = {
+  let identity: Identity = {
     username: '',
+    name: '',
+    surname: '',
+    phone: '',
+    city: '',
+    street: '',
+    house_number: '',
   };
   
 	onMount(async () => {
-    const userDetails = await getUserDetails();
     identity = {
-      username: userDetails!.username,
+      ...await getUserDetails(),
+      ...await getUserParentProfile(),
     };
 	});
 
@@ -33,15 +39,18 @@
 	let error = '';
 
 	async function handleIdentitySave() {
-		if (!identity!.username) {
-			error = 'Please provide username';
-			return;
-		}
-
 		try {
-			await updateIdentity(identity);
-      await logout();
-      goto('/login');
+			await updateIdentity({
+        username: identity.username,
+      });
+      await updateUserParentProfile({
+        name: identity.name,
+        surname: identity.surname,
+        phone: identity.phone,
+        city: identity.city,
+        street: identity.street,
+        house_number: identity.house_number,
+      });
 		} catch (e) {
 			error = (e as Error).message;
 			console.error(error);
@@ -66,7 +75,7 @@
 </script>
 
 <div class="min-h-dvh flex justify-center items-center flex-col">
-  <Tabs.Root bind:value={selectedTab}>
+  <Tabs.Root bind:value={selectedTab} class="size-[500px]">
     <Tabs.List class="grid grid-cols-2">
       <Tabs.Trigger class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background" value="identity">Identity</Tabs.Trigger>
       <Tabs.Trigger class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background" value="password">Password</Tabs.Trigger>
@@ -77,10 +86,69 @@
           <Card.Title>Your identity</Card.Title>
         </Card.Header>
         <form on:submit={handleIdentitySave}>
-          <Card.Content class="space-y-2">
-            <div class="space-y-1">
+          <Card.Content class="grid gap-2">
+            <div>
               <Label for="username">Username</Label>
-              <Input id="username" required bind:value={identity!.username} placeholder="Enter username" />
+              <Input
+                id="username"
+                required
+                bind:value={identity!.username}
+                placeholder="Enter username" />
+            </div>
+            <div>
+              <Label for="name">Name</Label>
+              <Input
+                id="name"
+                required
+                bind:value={identity.name}
+                placeholder="Enter name"
+              />
+            </div>
+            <div>
+              <Label for="surname">Surname</Label>
+              <Input
+                id="surname"
+                required
+                bind:value={identity.surname}
+                placeholder="Enter surname"
+              />
+            </div>
+            <div>
+              <Label for="phone">Phone</Label>
+              <Input
+                id="phone"
+                required
+                type="tel"
+                bind:value={identity.phone}
+                placeholder="Enter phone"
+              />
+            </div>
+            <div>
+              <Label for="city">City</Label>
+              <Input
+                id="city"
+                required
+                bind:value={identity.city}
+                placeholder="Enter city"
+              />
+            </div>
+            <div>
+              <Label for="street">Street</Label>
+              <Input
+                id="street"
+                required
+                bind:value={identity.street}
+                placeholder="Enter street"
+              />
+            </div>
+            <div>
+              <Label for="house_number">House number</Label>
+              <Input
+                id="house_number"
+                required
+                bind:value={identity.house_number}
+                placeholder="Enter house number"
+              />
             </div>
           </Card.Content>
           <Card.Footer>
