@@ -32,6 +32,25 @@ export type UserDetails = {
   status: Status;
 };
 
+export type Identity = {
+  username: string;
+  name: string;
+  surname: string;
+  phone: string;
+  city: string;
+  street: string;
+  house_number: string;
+}
+
 export type UpdateIdentity = {
   username: string;
+}
+
+export type UpdateParentProfile = {
+  name: string;
+  surname: string;
+  phone: string;
+  city: string;
+  street: string;
+  house_number: string;
 }
