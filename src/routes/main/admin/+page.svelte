@@ -11,13 +11,14 @@
 	import { Button } from '$lib/components/ui/button';
 	import CardContent from '$lib/components/ui/card/card-content.svelte';
 	import { getSessionData } from '$lib/api/auth';
-	import { Privilege } from '$lib/models/auth';
+	import { Privilege, statusLabels } from '$lib/models/auth';
 	import { Input } from '$lib/components/ui/input';
 	import { Confirm } from '$lib/components/custom/confirm';
 	import { getParents } from '$lib/api/parent';
 	import type { AddChild, Child } from '$lib/models/child';
 	import { addChild, getChildren, updateChild, deleteChild } from '$lib/api/child';
 	import * as Select from '$lib/components/ui/select';
+	import { getUserAccountByParentId, updateUserAccountStatus } from '$lib/api/user_account';
   
   const ERROR_DISPLAY_TIME = 3_000;
 
@@ -51,6 +52,8 @@
   let selectedChildToDelete: Child & { parent_id: number } | undefined;
 	let isLoadingParents = true;
 
+  let selectedParentToChangeStatus: Parent = undefined;
+
   function getClassName(class_id: number): string {
     return classes.find(c => c.id === class_id)?.name ?? '';
   }
@@ -67,6 +70,10 @@
   async function fetchParents() {
     try {
       parents = await getParents();
+      for (let i = 0; i < parents.length; i += 1) {
+        const { status } = await getUserAccountByParentId(parents[i].id);
+        parents[i].status = status;
+      }
     } catch (error) {
       errorMessage = error.message;
       showError();
@@ -257,6 +264,28 @@
     }
   }
 
+  function handleEditParentStatusClick(parent: Parent) {
+    selectedParentToChangeStatus = {
+      ...parent
+    };
+  }
+
+  function handleEditParentStatusCancelClick() {
+    selectedParentToChangeStatus = undefined;
+  }
+
+  async function handleEditParentStatusSaveClick() {
+    try {
+      await updateUserAccountStatus(selectedParentToChangeStatus.id, selectedParentToChangeStatus.status);
+      const index = parents.findIndex(p => p.id === selectedParentToChangeStatus.id);
+      parents[index].status = selectedParentToChangeStatus.status;
+      selectedParentToChangeStatus = undefined;
+    } catch(error) {
+      errorMessage = error.message;
+      showError();
+    }
+  }
+
 </script>
 
 <Confirm isOpen={isConfirmClassDialogOpen} onCancel={() => isConfirmClassDialogOpen = false} onConfirm={confirmDeleteClassGroup} />
@@ -394,15 +423,59 @@
       {#each parents as parent (parent.id)}
         <Card class="transition-shadow hover:shadow-md relative">
           <CardHeader>
-            <CardTitle class="flex">{parent.name} {parent.surname} (<a class="flex rounded text-blue-700 hover:bg-primary-600" href="callto:{parent.phone}"><Phone class="scale-50"/>{parent.phone}</a>)</CardTitle>
-            <CardDescription>{parent.city} {parent.street} {parent.house_number}</CardDescription>
+            <CardTitle class="flex items-center">
+              <span>{parent.name} {parent.surname}</span>
+              <a class="flex items-center rounded text-blue-700 bg-transparent hover:bg-primary-600" href="callto:{parent.phone}">&nbsp;{parent.phone}<Phone class="scale-50"/></a>
+            </CardTitle>
+            <CardDescription>
+              {#if selectedParentToChangeStatus?.id === parent.id}
+                <form on:submit={handleEditParentStatusSaveClick} class="flex gap-2">
+                  <Select.Root
+                    selected={ { value: parent.status, label: statusLabels.get(parent.status) } }
+                    onSelectedChange={(v) => {
+                      selectedParentToChangeStatus.status = v?.value ?? 0;
+                    }}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Select parent profile status" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each statusLabels as [value, label]}
+                        <Select.Item {value}>{label}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
+                  <Button
+                    variant="secondary"
+                    on:click={handleEditParentStatusCancelClick}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                    Save
+                  </Button>
+                </form>
+              {:else}
+                <div class="flex">
+                  <span>{statusLabels.get(parent.status)}</span>
+                  <Button
+                    class="bg-transparent text-green-600 hover:bg-green-600/10 p-0 h-auto ms-1"
+                    on:click={() => handleEditParentStatusClick(parent)}>
+                    <Pencil class="scale-50" />
+                  </Button>
+                </div>
+              {/if}
+              <div>{parent.city} {parent.street} {parent.house_number}</div>
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {#if addChildRequest.parent_id !== parent.id && childToUpdate?.parent_id !== parent.id}
-              <Button class="absolute right-5 top-5 bg-green-600 hover:bg-green-600/90 text-white" on:click={() => handleAddParentChildClick(parent)}>
-                <Baby class="scale-75" />Add child
-              </Button>
-              Children:
+              <span class="flex items-center">
+                Children
+                <Button class="ms-2 bg-transparent hover:bg-green-600/10 text-green-600 mt-auto p-0 h-auto" on:click={() => handleAddParentChildClick(parent)}>
+                  <Plus class="scale-50" />
+                </Button>
+              </span>
               <ul class="grid gap-2 mt-2">
                 {#each parent.children as child (child.id)}
                   <li class="flex align-center">

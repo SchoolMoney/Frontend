@@ -16,6 +16,12 @@ export enum Status {
   ENABLED = 10,
 }
 
+export const statusLabels: Map<Status, string> = new Map([
+  [Status.DISABLED, 'Disabled'],
+  [Status.LOCKED, 'Locked'],
+  [Status.ENABLED, 'Enabled'],
+]);
+
 export type Session = {
   user_id: number;
   username: string;
