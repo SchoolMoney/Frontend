@@ -232,12 +232,12 @@
               {:else}
                 <div>
                   <Button 
-                    class="bg-green-600 bg-opacity-0 text-green-600 hover:bg-opacity-25 p-2"
+                    class="bg-transparent text-green-600 hover:bg-green-600/10 p-2"
                     on:click={() => handleClassGroupEditClick(classGroup.id)}>
                     <Pencil class="scale-75" />
                   </Button>
                   <Button 
-                    class="bg-red-600 bg-opacity-0 text-red-600 hover:bg-opacity-25 p-2"
+                    class="bg-transparent text-red-600 hover:bg-red-600/10 p-2"
                     on:click={() => handleClassGroupDeleteClick(classGroup.id)}>
                     <Trash class="scale-75" />
                   </Button>
