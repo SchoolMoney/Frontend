@@ -15,8 +15,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Confirm } from '$lib/components/custom/confirm';
 	import { getParents } from '$lib/api/parent';
-	import type { AddChild, Child, UpdateChild } from '$lib/models/child';
-	import { addChild, getChildren, updateChild } from '$lib/api/child';
+	import type { AddChild, Child } from '$lib/models/child';
+	import { addChild, getChildren, updateChild, deleteChild } from '$lib/api/child';
 	import * as Select from '$lib/components/ui/select';
   
   const ERROR_DISPLAY_TIME = 3_000;
@@ -33,7 +33,7 @@
     description: ''
   };
 	let isLoadingClasses = true;
-  let isConfirmDialogOpen = false;
+  let isConfirmClassDialogOpen = false;
   let showAddingClass = false;
 
 	let parents: Parent[] = [];
@@ -46,7 +46,9 @@
   };
   let childToUpdate: Child & {
     parent_id: number;
-  };
+  } | undefined;
+  let isConfirmChildDialogOpen = false;
+  let selectedChildToDelete: Child & { parent_id: number } | undefined;
 	let isLoadingParents = true;
 
   function getClassName(class_id: number): string {
@@ -106,13 +108,13 @@
 
   function handleClassGroupDeleteClick(classId: number) {
     selectedClassGroupIdToDelete = classId;
-    isConfirmDialogOpen = true;
+    isConfirmClassDialogOpen = true;
   }
 
   async function confirmDeleteClassGroup() {
     try {
       await deleteClass(selectedClassGroupIdToDelete);
-      isConfirmDialogOpen = false;
+      isConfirmClassDialogOpen = false;
       classes = classes.filter(c => c.id !== selectedClassGroupIdToDelete);
       selectedClassGroupIdToDelete = 0;
     } catch (error) {
@@ -210,6 +212,11 @@
     };
   }
 
+  function handleDeleteParentChildClick(child: Child, parent_id: number) {
+    selectedChildToDelete = { ...child, parent_id };
+    isConfirmChildDialogOpen = true;
+  }
+
   function handleCancelEditParentChildClick() {
     childToUpdate = undefined;
   }
@@ -235,9 +242,25 @@
     }
   }
 
+  async function confirmDeleteChild() {
+    try {
+      await deleteChild(selectedChildToDelete!.id);
+      
+      const parentIndex = parents.findIndex(p => p.id === selectedChildToDelete!.parent_id);
+      parents[parentIndex].children = parents[parentIndex].children.filter(c => c.id !== selectedChildToDelete!.id);
+
+      selectedChildToDelete = undefined;
+      isConfirmChildDialogOpen = false;
+    } catch (error) {
+      errorMessage = error.message;
+      showError();
+    }
+  }
+
 </script>
 
-<Confirm isOpen={isConfirmDialogOpen} onCancel={() => isConfirmDialogOpen = false} onConfirm={confirmDeleteClassGroup} />
+<Confirm isOpen={isConfirmClassDialogOpen} onCancel={() => isConfirmClassDialogOpen = false} onConfirm={confirmDeleteClassGroup} />
+<Confirm isOpen={isConfirmChildDialogOpen} onCancel={() => isConfirmChildDialogOpen = false} onConfirm={confirmDeleteChild} />
 
 <div class="min-h-dvh">
 
@@ -387,6 +410,11 @@
                       class="bg-transparent text-green-600 hover:bg-green-600/10 p-0 h-auto"
                       on:click={() => handleEditParentChildClick(child, parent.id)}>
                       <Pencil class="scale-50" />
+                    </Button>
+                    <Button
+                      class="bg-transparent text-red-600 hover:bg-red-600/10 p-0 h-auto"
+                      on:click={() => handleDeleteParentChildClick(child, parent.id)}>
+                      <Trash class="scale-50" />
                     </Button>
                     <span>{child.name} {child.surname} {child.birth_date} (Class: {getClassName(child.group_id)})</span>
                   </li>

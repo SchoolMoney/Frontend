@@ -39,3 +39,12 @@ export async function getUserChildren() {
     throw error;
   }
 }
+
+export async function deleteChild(id: number) {
+  try {
+    return await api_middleware.delete(`/api/child/${id}`);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
