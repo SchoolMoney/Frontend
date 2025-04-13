@@ -35,8 +35,6 @@
 	let isLoadingClasses = true;
   let isConfirmDialogOpen = false;
   let showAddingClass = false;
-  let showAddingParentChild = false;
-  let showEditingParentChild = false;
 
 	let parents: Parent[] = [];
   let addChildRequest: AddChild = {
@@ -168,13 +166,11 @@
   }
 
   function handleAddParentChildClick({ id, surname }: Parent) {
-    showAddingParentChild = true;
     addChildRequest.parent_id = id;
     addChildRequest.surname = surname;
   }
 
   function handleCancelAddParentChildClick() {
-    showAddingParentChild = false;
     addChildRequest = {
       name: '',
       surname: '',
@@ -194,7 +190,6 @@
       ];
       children.push();
       parents[index].children = children;
-      showAddingParentChild = false;
       addChildRequest = {
         name: '',
         surname: '',
@@ -209,7 +204,6 @@
   }
 
   function handleEditParentChildClick(child: Child, parent_id: number) {
-    showEditingParentChild = true;
     childToUpdate = {
       ...child,
       parent_id,
@@ -217,7 +211,7 @@
   }
 
   function handleCancelEditParentChildClick() {
-    showEditingParentChild = false;
+    childToUpdate = undefined;
   }
 
   async function handleEditParentChildSaveClick() {
@@ -234,8 +228,7 @@
       parents[parentIndex].children[childIndex] = {
         ...childToUpdate
       };
-
-      showEditingParentChild = false;
+      childToUpdate = undefined;
     } catch (error) {
       errorMessage = error.message;
       showError();
@@ -382,7 +375,7 @@
             <CardDescription>{parent.city} {parent.street} {parent.house_number}</CardDescription>
           </CardHeader>
           <CardContent>
-            {#if showAddingParentChild === false && showEditingParentChild === false}
+            {#if addChildRequest.parent_id !== parent.id && childToUpdate?.parent_id !== parent.id}
               <Button class="absolute right-5 top-5 bg-green-600 hover:bg-green-600/90 text-white" on:click={() => handleAddParentChildClick(parent)}>
                 <Baby class="scale-75" />Add child
               </Button>
@@ -401,7 +394,7 @@
               </ul>
             {/if}
 
-            {#if showAddingParentChild && parent.id === addChildRequest.parent_id}
+            {#if parent.id === addChildRequest.parent_id}
               <form on:submit={handleAddParentChildSaveClick} class="grid gap-2">
                 <div class="grid gap-2 grid-cols-2 grid-rows-2">
                   <Input required bind:value={addChildRequest.name} placeholder="Enter name" />
@@ -436,7 +429,7 @@
               </form>
             {/if}
 
-            {#if showEditingParentChild}
+            {#if parent.id === childToUpdate?.parent_id}
               <form on:submit={handleEditParentChildSaveClick} class="grid gap-2 mt-2">
                 <div class="grid gap-2 grid-cols-2 grid-rows-2">
                   <Input required bind:value={childToUpdate.name} placeholder="Enter name" />
