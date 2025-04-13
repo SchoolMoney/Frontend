@@ -72,7 +72,7 @@
   <form class={cardVariants.get(collection.status) + " grid grid-cols-1 md:grid-cols-1 gap-6 p-6 bg-white shadow-md rounded-lg mt-20 max-w-2xl mx-auto"} on:submit={save}>
     <div>
       <Label>Logo link*</Label>
-      <Input required type="text" bind:value={collection.logo_path} placeholder="Enter logo URL" />
+      <Input required type="url" bind:value={collection.logo_path} placeholder="Enter logo URL" />
     </div>
     <div>
       <Label>Name*</Label>

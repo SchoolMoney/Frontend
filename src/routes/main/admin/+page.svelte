@@ -3,17 +3,20 @@
 	import { fly } from 'svelte/transition';
 	import { addClass, deleteClass, getClasses, updateClass } from '$lib/api/class_group';
 	import type { AddClassGroup, ClassGroup } from '$lib/models/class_group';
+	import type { AddParent, Parent } from '$lib/models/parent';
 	import { Card, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { goto } from '$app/navigation';
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
-	import { CircleX, Plus, Pencil, Trash } from 'lucide-svelte';
+	import { CircleX, Plus, Pencil, Trash, Phone } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import CardContent from '$lib/components/ui/card/card-content.svelte';
 	import { getSessionData } from '$lib/api/auth';
 	import { Privilege } from '$lib/models/auth';
 	import { Input } from '$lib/components/ui/input';
 	import { Confirm } from '$lib/components/custom/confirm';
-
+	import { addParent, getParents } from '../../../lib/api/parent';
+  
+  const ERROR_DISPLAY_TIME = 3_000;
 
 	let errorMessage = '';
 	let showErrorPopup = false;
@@ -28,21 +31,35 @@
   };
 	let isLoadingClasses = true;
   let isConfirmDialogOpen = false;
-	let isLoadingParents = true;
   let showAddingClass = false;
-	const ERROR_DISPLAY_TIME = 3_000;
+
+	let parents: Parent[] = [];
+  let addParentRequest: AddParent = {
+    username: '',
+    password: '',
+    confirmPassword: '',
+    name: '',
+    surname: '',
+  };
+	let isLoadingParents = true;
 
 	async function fetchClasses() {
 		try {
 			classes = await getClasses();
-			if (classes.length == 0) {
-				errorMessage = 'No classes found';
-			}
 		} catch (error) {
       errorMessage = error.message;
       showError();
 		}
 	}
+
+async function fetchParents() {
+  try {
+    parents = await getParents();
+  } catch (error) {
+    errorMessage = error.message;
+    showError();
+  }
+}
 
 	function showError() {
     showErrorPopup = true;
@@ -64,6 +81,9 @@
 
 		await fetchClasses();
 		isLoadingClasses = false;
+
+    await fetchParents();
+    isLoadingParents = false;
 	});
 
   function handleClassGroupEditClick(classId: number) {
@@ -255,7 +275,7 @@
     <div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8 p-4">
       <h2 class="text-center text-4xl w-full font-bold col-span-2">Parents</h2>
   
-      {#if isLoadingClasses}
+      {#if isLoadingParents}
         <div class="flex justify-center items-center h-64 col-span-2">
           <p>Loading parents...</p>
         </div>
@@ -265,22 +285,14 @@
         </div>
       {/if}
 
-      {#each classes as classGroup (classGroup.id)}
+      {#each parents as parent (parent.id)}
         <Card class="h-full transition-shadow hover:shadow-md">
           <CardHeader>
-            <CardTitle>{classGroup.name}</CardTitle>
-            <CardDescription>{classGroup.description}</CardDescription>
+            <CardTitle>{parent.name} {parent.surname} ({parent.phone})</CardTitle>
+            <CardDescription>{parent.city} {parent.street} {parent.house_number}</CardDescription>
           </CardHeader>
           <CardContent class="flex justify-between">
-            <Button
-              class="bg-green-600 text-white mt-auto hover:bg-opacity-85"
-              on:click={() => handleClassGroupEditClick(classGroup.id)}>
-              Edit
-            </Button>
-            <Button
-              on:click={() => handleClassGroupDetailsClick(classGroup.id)}>
-              Details
-            </Button>
+            TODO: Listing children
           </CardContent>
         </Card>
       {/each}
