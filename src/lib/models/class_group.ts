@@ -13,6 +13,11 @@ export enum GroupRole {
   CASHIER = 2,
 }
 
+export const groupRoleLabels: Map<GroupRole, string> = new Map([
+  [GroupRole.MEMBER, 'Member'],
+  [GroupRole.CASHIER, 'Cashier'],
+]);
+
 export type Requester = {
   parent_id: number;
   name: string;
@@ -23,7 +28,7 @@ export type Requester = {
 export type ClassView = {
   class: ClassGroup;
   children: Child[];
-  parents: Parent[];
+  parents: (Parent & { role: GroupRole })[];
   collections: Collection[];
   requester: Requester;
 }

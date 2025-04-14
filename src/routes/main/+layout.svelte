@@ -44,21 +44,21 @@
 				</Tooltip.Trigger>
 				<Tooltip.Content side="right">Collections</Tooltip.Content>
 			</Tooltip.Root>
-			<Tooltip.Root>
-				<Tooltip.Trigger asChild let:builder>
-					<a
-						href="/main/classes"
-						class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname.includes('classes')) ? activeTabClasses : ''}"
-						use:builder.action
-						{...builder}
-					>
-						<School class="h-5 w-5" />
-						<span class="sr-only">Classes</span>
-					</a>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="right">Classes</Tooltip.Content>
-			</Tooltip.Root>
       {#if isAdmin === false}
+        <Tooltip.Root>
+          <Tooltip.Trigger asChild let:builder>
+            <a
+              href="/main/classes"
+              class="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8 {(page.url.pathname.includes('classes')) ? activeTabClasses : ''}"
+              use:builder.action
+              {...builder}
+            >
+              <School class="h-5 w-5" />
+              <span class="sr-only">Classes</span>
+            </a>
+          </Tooltip.Trigger>
+          <Tooltip.Content side="right">Classes</Tooltip.Content>
+        </Tooltip.Root>
         <Tooltip.Root>
           <Tooltip.Trigger asChild let:builder>
             <a
@@ -142,14 +142,14 @@
 							<HandCoins class="h-5 w-5" />
 							Collections
 						</a>
-						<a
-							href="/main/classes"
-							class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname .includes('classes')) ? activeTabClasses : ''}"
-						>
-							<School class="h-5 w-5" />
-							Classes
-						</a>
             {#if isAdmin === false}
+              <a
+                href="/main/classes"
+                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname .includes('classes')) ? activeTabClasses : ''}"
+              >
+                <School class="h-5 w-5" />
+                Classes
+              </a>
               <a
                 href="/main/children"
                 class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground {(page.url.pathname.includes('children')) ? activeTabClasses : ''}"

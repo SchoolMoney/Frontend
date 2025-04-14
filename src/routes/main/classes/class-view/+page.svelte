@@ -2,31 +2,36 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { fly } from 'svelte/transition';
-	import { getClassView } from '$lib/api/class_group';
+	import { changeCashier, getClassView } from '$lib/api/class_group';
 	import { decodeToken } from '$lib/api/auth';
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '$lib/components/ui/card';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
-	import { CircleX, Files, HandCoins, Calendar } from 'lucide-svelte';
+	import { CircleX, Files, HandCoins, Calendar, Replace } from 'lucide-svelte';
 	import { cardVariants, CollectionStatus, statusLabels } from '$lib/models/collection';
 	import { goto } from '$app/navigation';
-	import { GroupRole, type ClassView } from '$lib/models/class_group';
+	import { GroupRole, groupRoleLabels, type ClassView } from '$lib/models/class_group';
   import { Label } from "$lib/components/ui/label";
   import * as RadioGroup from "$lib/components/ui/radio-group";
+  import * as Select from "$lib/components/ui/select";
 	import { Privilege } from '$lib/models/auth';
 	import { Confirm } from '$lib/components/custom/confirm';
 	import { cancelCollection } from '$lib/api/collection';
+	import type { Parent } from '$lib/models/parent';
 
 
 	let classViewData: ClassView | null = null;
+  let classGroupCashier: Parent;
 	let isLoading = true;
 	let isLoadingCollections = false;
 	let showErrorPopup = false;
 	let errorMessage = '';
-	let privilege: Privilege;
+	let loggedUserPrivilige: Privilege;
   let classId: number;
   let isConfirmDialogOpen = false;
   let selectedCollectionIdToCancel = 0;
+  let showChangeClassGroupCashier = false;
+  let selectedParentIdToSwitchToCashier = 0;
 
 	async function handleStatusChange(status: CollectionStatus) {
     classViewData = await getClassView(classId, status);
@@ -34,7 +39,7 @@
 
 	onMount(async () => {
 		let decoded_token = decodeToken();
-		privilege = decoded_token.privilege;
+		loggedUserPrivilige = decoded_token.privilege;
 		try {
 			const classGroupId = page.url.searchParams.get('class_group_id');
 
@@ -44,6 +49,7 @@
 
 			classId = parseInt(classGroupId, 10);
 			classViewData = await getClassView(classId, CollectionStatus.OPEN);
+      classGroupCashier = classViewData?.parents.find(p => p.role === GroupRole.CASHIER);
 		} catch (error) {
 			showErrorPopup = true;
 			errorMessage = error.message || 'An error occurred while fetching data';
@@ -99,7 +105,38 @@
   }
 
 	function handleShowReport() {
+    alert('TODO');
 	}
+
+  function handleChangeCashierClick(parent_id: number) {
+    showChangeClassGroupCashier = true;
+  }
+
+  function handleChangeCashierCancelClick() {
+    showChangeClassGroupCashier = false;
+  }
+
+  async function handleChangeCashierSaveClick() {
+    try {
+      await changeCashier(classId, selectedParentIdToSwitchToCashier);
+
+      const oldCashierIndex = classViewData?.parents.findIndex(p => p.role === GroupRole.CASHIER);
+      const newCashierIndex = classViewData?.parents.findIndex(p => p.id === selectedParentIdToSwitchToCashier);
+
+      classViewData.parents[oldCashierIndex].role = GroupRole.MEMBER;
+      classViewData.parents[newCashierIndex].role = GroupRole.CASHIER;
+
+      selectedParentIdToSwitchToCashier = 0;
+      showChangeClassGroupCashier = false;
+    } catch (error) {
+			showErrorPopup = true;
+			errorMessage = error.message || 'An error occurred while changing cashier';
+			setTimeout(() => {
+				showErrorPopup = false;
+			}, 5000);
+		}
+    
+  }
 </script>
 
 <Confirm isOpen={isConfirmDialogOpen} onCancel={() => isConfirmDialogOpen = false} onConfirm={confirmCancelCollection} />
@@ -152,9 +189,9 @@
             Show report
 					</Button>
 
-					{#if classViewData.requester?.group_role === GroupRole.CASHIER || privilege === Privilege.ADMIN_USER}
+					{#if classViewData.requester?.group_role === GroupRole.CASHIER || loggedUserPrivilige === Privilege.ADMIN_USER}
             <Button
-              class="bg-green-500 text-white mt-auto hover:bg-opacity-85 ms-2"
+              class="bg-green-500 text-white mt-auto hover:bg-opacity-85 ms-2 gap-2"
               on:click={handleAddCollection}>
 							<HandCoins class="h-4 w-4" />
 							Add collection
@@ -201,7 +238,7 @@
 										<div class="text-sm">{statusLabels.get(collection.status)}</div>
 									</CardContent>
 									<CardFooter class="flex justify-between">
-                    {#if collection.status === CollectionStatus.OPEN && (privilege === Privilege.ADMIN_USER || classViewData.requester?.group_role === GroupRole.CASHIER)}
+                    {#if collection.status === CollectionStatus.OPEN && (loggedUserPrivilige === Privilege.ADMIN_USER || classViewData.requester?.group_role === GroupRole.CASHIER)}
                       <Button variant="destructive" on:click={() => handleCancelCollection(collection.id)}>Cancel</Button>
                     {/if}
                     <Button on:click={() => handleDetailsCollection(collection.id)}>Details</Button>
@@ -213,12 +250,49 @@
 				</div>
 			</div>
 
-			<!-- Parents and Children Section - 1/3 width on large screens -->
 			<div class="lg:col-span-1">
 				<div class="space-y-6">
-					<!-- Parents List -->
 					<div>
-						<h2 class="text-xl font-semibold mb-4">Parents</h2>
+						<div class="mb-4 flex gap-2 items-center">
+              <h2 class="text-xl font-semibold ">Parents</h2>
+              {#if loggedUserPrivilige === Privilege.ADMIN_USER && showChangeClassGroupCashier === false}
+                <Button
+                  variant="default"
+                  class="bg-transparent text-blue-600 hover:bg-blue-600/10 p-2 h-auto"
+                  on:click={handleChangeCashierClick}>
+                  <Replace class="h-4 w-4" />
+                </Button>
+              {/if}
+              
+              {#if showChangeClassGroupCashier}
+                <form on:submit={handleChangeCashierSaveClick} class="flex gap-2 w-full">
+                  <Select.Root
+                    selected={ { value: classGroupCashier?.id, label: `${classGroupCashier.name} ${classGroupCashier.surname}` }}
+                    onSelectedChange={(v) => {
+                      selectedParentIdToSwitchToCashier = v?.value ?? 0;
+                    }}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Select cashier" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each classViewData.parents as parent}
+                        <Select.Item value={parent.id}>{parent.name} {parent.surname}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
+                  <Button
+                    variant="secondary"
+                    on:click={handleChangeCashierCancelClick}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                    Save
+                  </Button>
+                </form>
+              {/if}
+            </div>
 						<div class="bg-card rounded-lg shadow-sm border">
 							<div class="overflow-y-auto max-h-[calc(40vh-150px)]">
 								{#if classViewData.parents.length === 0}
@@ -231,7 +305,7 @@
 											<li class="p-3 hover:bg-muted/50">
 												<p class="font-medium">{parent.name} {parent.surname}</p>
 												<p class="text-sm text-muted-foreground">
-													Role: {parent.role === 1 ? 'Parent' : parent.role === 2 ? 'Cashier' : 'Unknown'}
+													Role: {groupRoleLabels.get(parent.role)}
 												</p>
 											</li>
 										{/each}
