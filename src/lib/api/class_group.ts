@@ -46,3 +46,12 @@ export async function deleteClass(class_id: number) {
 		throw error;
 	}
 }
+
+export async function changeCashier(class_group_id: number, new_cashier_parent_id: number) {
+	try {
+		await api_middleware.put(`/api/class_group/${class_group_id}/cashier`, { parent_id: new_cashier_parent_id });
+	} catch (error){
+		console.error(error);
+		throw error;
+	}
+}
