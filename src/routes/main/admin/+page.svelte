@@ -342,6 +342,33 @@
 				</Button>
 			</h2>
 
+			{#if showAddingClass}
+				<form on:submit={handleAddClassGroupSaveClick}>
+					<Card class="h-full transition-shadow hover:shadow-md">
+						<CardHeader>
+							<CardTitle>
+								<Input required bind:value={addClassRequest.name} placeholder="Set name" />
+							</CardTitle>
+							<CardDescription>
+								<Input bind:value={addClassRequest.description} placeholder="Set description" />
+							</CardDescription>
+						</CardHeader>
+						<CardContent class="flex justify-end gap-2">
+							<Button
+								variant="secondary"
+								on:click={handleCancelAddClassClick}>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+								Save
+							</Button>
+						</CardContent>
+					</Card>
+				</form>
+			{/if}
+
 			{#if isLoadingClasses}
 				<div class="flex justify-center items-center h-64">
 					<p>Loading class groups...</p>
@@ -350,34 +377,10 @@
 				<div class="text-muted-foreground text-opacity-50 text-xl text-center mt-20">
 					No class groups found.
 				</div>
-			{:else}
+			{/if}
+
 				<div class="grid grid-cols-2 gap-4 mt-10">
-					{#if showAddingClass}
-						<form on:submit={handleAddClassGroupSaveClick}>
-							<Card class="h-full transition-shadow hover:shadow-md">
-								<CardHeader>
-									<CardTitle>
-										<Input required bind:value={addClassRequest.name} placeholder="Set name" />
-									</CardTitle>
-									<CardDescription>
-										<Input bind:value={addClassRequest.description} placeholder="Set description" />
-									</CardDescription>
-								</CardHeader>
-								<CardContent class="flex justify-end gap-2">
-									<Button
-										variant="secondary"
-										on:click={handleCancelAddClassClick}>
-										Cancel
-									</Button>
-									<Button
-										type="submit"
-										class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
-										Save
-									</Button>
-								</CardContent>
-							</Card>
-						</form>
-					{/if}
+
 
 					{#each classes as classGroup (classGroup.id)}
 						<form on:submit={handleClassGroupSaveClick}>
@@ -435,7 +438,6 @@
 						</form>
 					{/each}
 				</div>
-			{/if}
 		</div>
 
 		<div class="flex flex-col">
