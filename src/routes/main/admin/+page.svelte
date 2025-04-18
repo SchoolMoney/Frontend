@@ -3,7 +3,7 @@
 	import { fly } from 'svelte/transition';
 	import { addClass, deleteClass, getClasses, updateClass } from '$lib/api/class_group';
 	import type { AddClassGroup, ClassGroup } from '$lib/models/class_group';
-	import type { Parent } from '$lib/models/parent';
+  import type { Parent } from '$lib/models/parent';
 	import { Card, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { goto } from '$app/navigation';
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
@@ -11,14 +11,14 @@
 	import { Button } from '$lib/components/ui/button';
 	import CardContent from '$lib/components/ui/card/card-content.svelte';
 	import { getSessionData } from '$lib/api/auth';
-	import { Privilege, statusLabels } from '$lib/models/auth';
+  import { Privilege, privilegeLabels, statusLabels } from '$lib/models/auth';
 	import { Input } from '$lib/components/ui/input';
 	import { Confirm } from '$lib/components/custom/confirm';
-	import { getParents } from '$lib/api/parent';
+  import { getParents } from '$lib/api/parent';
 	import type { AddChild, Child } from '$lib/models/child';
 	import { addChild, getChildren, updateChild, deleteChild } from '$lib/api/child';
 	import * as Select from '$lib/components/ui/select';
-	import { getUserAccountByParentId, updateUserAccountStatus } from '$lib/api/user_account';
+  import { getUserAccountByParentId, updateUserAccountPrivilege, updateUserAccountStatus } from '$lib/api/user_account';
   
   const ERROR_DISPLAY_TIME = 3_000;
 
@@ -53,6 +53,7 @@
 	let isLoadingParents = true;
 
   let selectedParentToChangeStatus: Parent = undefined;
+  let selectedParentToChangePrivilege: Parent = undefined;
 
   function getClassName(class_id: number): string {
     return classes.find(c => c.id === class_id)?.name ?? '';
@@ -71,8 +72,11 @@
     try {
       parents = await getParents();
       for (let i = 0; i < parents.length; i += 1) {
-        const { status } = await getUserAccountByParentId(parents[i].id);
+        console.log(parents[i]);
+        const { status, privilege } = await getUserAccountByParentId(parents[i].id);
+        console.log(status, privilege);
         parents[i].status = status;
+        parents[i].privilege = privilege;
       }
     } catch (error) {
       errorMessage = error.message;
@@ -286,6 +290,29 @@
     }
   }
 
+  async function handleEditParentPrivilegeClick(parent: Parent) {
+
+    selectedParentToChangePrivilege = {
+      ...parent,
+    };
+  }
+
+  async function handleEditParentPrivilegeSaveClick() {
+    try {
+      await updateUserAccountPrivilege(selectedParentToChangePrivilege.id, selectedParentToChangePrivilege.privilege);
+      const index = parents.findIndex(p => p.id === selectedParentToChangePrivilege.id);
+      parents[index].privilege = selectedParentToChangePrivilege.privilege;
+      selectedParentToChangePrivilege = undefined;
+    } catch(error) {
+      errorMessage = error.message;
+      showError();
+    }
+  }
+
+  function handleEditParentPrivilegeCancelClick() {
+    selectedParentToChangePrivilege = undefined;
+  }
+
 </script>
 
 <Confirm isOpen={isConfirmClassDialogOpen} onCancel={() => isConfirmClassDialogOpen = false} onConfirm={confirmDeleteClassGroup} />
@@ -465,6 +492,45 @@
                   </Button>
                 </div>
               {/if}
+
+              {#if selectedParentToChangePrivilege?.id === parent.id}
+                <form on:submit={handleEditParentPrivilegeSaveClick} class="flex gap-2">
+                  <Select.Root
+                    selected={ { value: parent.privilege, label: privilegeLabels.get(parent.privilege) } }
+                    onSelectedChange={(v) => {
+                      selectedParentToChangePrivilege.privilege = v?.value ?? 1;
+                    }}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Select parent profile status" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each privilegeLabels as [value, label]}
+                        <Select.Item {value}>{label}</Select.Item>
+                      {/each}
+                    </Select.Content>
+                  </Select.Root>
+                  <Button
+                    variant="secondary"
+                    on:click={handleEditParentPrivilegeCancelClick}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
+                    Save
+                  </Button>
+                </form>
+              {:else}
+                <div class="flex">
+                  <span>{privilegeLabels.get(parent.privilege)}</span>
+                  <Button
+                    class="bg-transparent text-green-600 hover:bg-green-600/10 p-0 h-auto ms-1"
+                    on:click={() => handleEditParentPrivilegeClick(parent)}>
+                    <Pencil class="scale-50" />
+                  </Button>
+                </div>
+              {/if}
+
               <div>{parent.city} {parent.street} {parent.house_number}</div>
             </CardDescription>
           </CardHeader>
