@@ -1,4 +1,4 @@
-import type { Status } from './auth';
+import { Privilege, Status } from './auth';
 import type { Child } from './child';
 
 export type Parent = {
@@ -10,7 +10,7 @@ export type Parent = {
   street: string;
   house_number: string;
   status: Status;
-
+  privilege: Privilege
   children: Child[];
 }
 
