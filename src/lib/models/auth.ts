@@ -10,6 +10,11 @@ export enum Privilege {
   ADMIN_USER = 10,
 }
 
+export const privilegeLabels: Map<Privilege, string> = new Map([
+	[Privilege.STANDARD_USER, 'Standard user'],
+	[Privilege.ADMIN_USER, 'Admin']
+]);
+
 export enum Status {
   DISABLED = 0,
   LOCKED = 1,
