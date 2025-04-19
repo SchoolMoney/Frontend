@@ -2,6 +2,7 @@
 	import { Calendar as CalendarPrimitive } from "bits-ui";
 	import * as Calendar from "./index.js";
 	import { cn } from "$lib/utils.js";
+	import type { DateValue } from '@internationalized/date';
 
 	type $$Props = CalendarPrimitive.Props;
 
@@ -10,6 +11,9 @@
 	export let value: $$Props["value"] = undefined;
 	export let placeholder: $$Props["placeholder"] = undefined;
 	export let weekdayFormat: $$Props["weekdayFormat"] = "short";
+	export let minDay: DateValue = undefined;
+	export let maxDay: DateValue = undefined;
+
 
 	let className: $$Props["class"] = undefined;
 	export { className as class };
@@ -19,6 +23,8 @@
 	bind:value
 	bind:placeholder
 	{weekdayFormat}
+	minValue={minDay}
+	maxValue={maxDay}
 	class={cn("p-3", className)}
 	{...$$restProps}
 	on:keydown

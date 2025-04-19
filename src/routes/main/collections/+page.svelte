@@ -54,6 +54,7 @@
 
   function clearFilters(event: Event): void {
     params = { ...emptyParams };
+    handleSubmit(event);
   }
 
   function handleDetailsClick(collection_id: number): void {
@@ -65,7 +66,7 @@
   <h2 class="text-center text-4xl w-full font-bold">Collections</h2>
   
   <div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-    <form class="lg:col-start-2 lg:col-end-3 md:col mt-10" on:submit={handleSubmit}>
+    <form class="lg:col-start-1 lg:col-end-3 md:col mt-10" on:submit={handleSubmit}>
       <Card.Content class="grid gap-4 md:gap-8 lg:[repeat(3,1fr)_auto_auto] xl:grid-cols-[repeat(3,1fr)_auto_auto] lg:grid-rows-2 xl:grid-rows-2">
         <div class="lg:col-start-1 xl:col-end-2">
           <Label for="name">Name</Label>
@@ -88,7 +89,10 @@
               </Button>
             </Popover.Trigger>
             <Popover.Content class="w-auto p-0" align="start">
-              <Calendar.Calendar bind:value={params.start_date_from} />
+              <Calendar.Calendar bind:value={params.start_date_from}
+                                 maxValue={params.start_date_to}
+              />
+
             </Popover.Content>
           </Popover.Root>
         </div>
@@ -109,7 +113,9 @@
               </Button>
             </Popover.Trigger>
             <Popover.Content class="w-auto p-0" align="start">
-              <Calendar.Calendar bind:value={params.start_date_to} />
+              <Calendar.Calendar bind:value={params.start_date_to}
+                                 minValue={params.start_date_from}
+              />
             </Popover.Content>
           </Popover.Root>
         </div>
@@ -125,7 +131,7 @@
           <Label for="status">Status</Label>
           <Select.Root
             onSelectedChange={(v) => {
-              params.status = v?.value as CollectionStatus ?? undefined;
+              params.status = v?.value ?? 0;
             }}>
             <Select.Trigger>
               <Select.Value placeholder="Status" />
@@ -154,7 +160,9 @@
               </Button>
             </Popover.Trigger>
             <Popover.Content class="w-auto p-0" align="start">
-              <Calendar.Calendar bind:value={params.end_date_from} />
+              <Calendar.Calendar bind:value={params.end_date_from}
+                                 maxValue={params.end_date_to}
+              />
             </Popover.Content>
           </Popover.Root>
         </div>
@@ -175,7 +183,9 @@
               </Button>
             </Popover.Trigger>
             <Popover.Content class="w-auto p-0" align="start">
-              <Calendar.Calendar bind:value={params.end_date_to} />
+              <Calendar.Calendar bind:value={params.end_date_to}
+                                 minValue={params.end_date_from}
+              />
             </Popover.Content>
           </Popover.Root>
         </div>
@@ -183,7 +193,7 @@
     </form>
   </div>
   
-  <div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-8 xl:grid-cols-8">
+  <div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-8 xl:grid-cols-4">
     {#if collections.length > 0}
       {#each collections as collection}
         <Card.Root class={cardVariants.get(collection.status)}>
@@ -207,7 +217,7 @@
             <div>Status - <span class={statusTextColors.get(collection.status) + " font-semibold"}>{statusLabels.get(collection.status)}</span></div>
           </Card.Content>
           <Card.Footer class="flex justify-between">
-            <Button class="ms-auto" on:click={(_) => handleDetailsClick(collection.id)}>Details</Button>
+            <Button class="ms-auto" on:click={() => handleDetailsClick(collection.id)}>Details</Button>
           </Card.Footer>
         </Card.Root>
       {/each}
