@@ -47,7 +47,7 @@
     isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
     classGroups = await getClasses();
 
-    collection.id = parseInt(page.params.id, 10);
+    collection.class_group_id = parseInt(page.params.id, 10);
     if (collection.id > 0) {
       collection = await getCollectionById(collection.id);
       bankAccount = await getBankAccountById(collection.bank_account_id);
@@ -64,6 +64,17 @@
     page.params.id = collection.id.toString();
     bankAccount = await getBankAccountById(collection.bank_account_id);
     collectionClassGroup = classGroups.find(c => c.id === collection.class_group_id)!;
+  }
+
+  function formatDateToYYYYMMDD(date) {
+    if (!date) return '';
+
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 </script>
 
@@ -89,7 +100,7 @@
       </div>
       <div class="flex-1">
         <Label>End date (optional)</Label>
-        <Input type="date" bind:value={collection.end_date} placeholder="Enter end date" />
+        <Input type="date" bind:value={collection.end_date} min={formatDateToYYYYMMDD(collection.start_date)} placeholder="Enter end date" />
       </div>
     </div>
     <div>
