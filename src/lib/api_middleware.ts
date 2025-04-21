@@ -54,7 +54,13 @@ export function useApi(baseUrl = baseApiUrl) {
         return null;
       }
 
-			return await response.json();
+			const contentType = response.headers.get("Content-Type");
+
+			if (contentType && contentType.includes("application/json")) {
+				return response.json()
+			} else{
+				return response
+			}
 	}
 
 	// Funkcje pomocnicze do typowych operacji HTTP
