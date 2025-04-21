@@ -124,7 +124,7 @@ export async function refresh(){
 		setToken(access_token);
 	}
 
-	return accessToken.access_token;
+	return accessToken;
 }
 
 export async function updatePassword(old_password: string, new_password: string) {
