@@ -53,6 +53,11 @@
       return;
     }
 
+    if (isFinite(addParentRequest.phone) === false) {
+      error = 'Invalid phone number'
+      return;
+    }
+
 		try {
 			await register(username, password);
 			await handleLogin();

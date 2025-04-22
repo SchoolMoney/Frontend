@@ -126,8 +126,11 @@
       const oldCashierIndex = classViewData?.parents.findIndex(p => p.role === GroupRole.CASHIER);
       const newCashierIndex = classViewData?.parents.findIndex(p => p.id === selectedParentIdToSwitchToCashier);
 
-      classViewData.parents[oldCashierIndex].role = GroupRole.MEMBER;
-      classViewData.parents[newCashierIndex].role = GroupRole.CASHIER;
+      if (oldCashierIndex !== -1) {
+        classViewData!.parents[oldCashierIndex].role = GroupRole.MEMBER;
+      }
+
+      classViewData!.parents[newCashierIndex].role = GroupRole.CASHIER;
 
       selectedParentIdToSwitchToCashier = 0;
       showChangeClassGroupCashier = false;

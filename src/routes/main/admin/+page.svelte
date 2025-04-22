@@ -74,9 +74,7 @@
     try {
       parents = await getParents();
       for (let i = 0; i < parents.length; i += 1) {
-        console.log(parents[i]);
         const { status, privilege } = await getUserAccountByParentId(parents[i].id);
-        console.log(status, privilege);
         parents[i].status = status;
         parents[i].privilege = privilege;
       }
