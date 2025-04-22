@@ -49,7 +49,10 @@
 
 			classId = parseInt(classGroupId, 10);
 			classViewData = await getClassView(classId, CollectionStatus.OPEN);
-      classGroupCashier = classViewData?.parents.find(p => p.role === GroupRole.CASHIER);
+      classGroupCashier = classViewData?.parents.find(p => p.role === GroupRole.CASHIER) ?? {
+        name: '',
+        surname: '',
+      };
 		} catch (error) {
 			showErrorPopup = true;
 			errorMessage = error.message || 'An error occurred while fetching data';
@@ -267,7 +270,7 @@
               {#if showChangeClassGroupCashier}
                 <form on:submit={handleChangeCashierSaveClick} class="flex gap-2 w-full">
                   <Select.Root
-                    selected={ { value: classGroupCashier?.id, label: `${classGroupCashier.name} ${classGroupCashier.surname}` }}
+                    selected={ { value: classGroupCashier?.id, label: `${classGroupCashier?.name ?? ''} ${classGroupCashier?.surname}` }}
                     onSelectedChange={(v) => {
                       selectedParentIdToSwitchToCashier = v?.value ?? 0;
                     }}>
