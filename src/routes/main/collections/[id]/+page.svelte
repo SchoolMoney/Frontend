@@ -142,7 +142,9 @@
 	}
 
 	async function restoreChild(childId: number) {
-		// restoring the child back to collection if one was dispatched - can be performed only by a parent of the child
+		await api_middleware.put(`/api/collection/${collection.id}/restore/${childId}`, {});
+		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
+		children = data.children;
 	}
 
 	async function showAddDocumentDialog() {
