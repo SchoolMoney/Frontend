@@ -6,51 +6,70 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Alert from '$lib/components/ui/alert';
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
-	import { getUserParentProfile, logout, updateIdentity, updatePassword, updateUserParentProfile } from '$lib/api/auth';
+	import {
+		getUserParentProfile,
+		logout,
+		updateIdentity,
+		updatePassword,
+		updateUserParentProfile
+	} from '$lib/api/auth';
 	import { goto } from '$app/navigation';
 	import { getUserDetails } from '$lib/api/auth';
 	import { type Identity } from '$lib/models/auth';
 	import { onMount } from 'svelte';
+	import type { BankAccount } from '$lib/models/bank_account';
+	import { getUserBankAccount } from '$lib/api/bank_account';
+	import ExternalMoneyOperation from './ExternalMoneyOperation.svelte';
 
+	let identity: Identity = {
+		username: '',
+		name: '',
+		surname: '',
+		phone: '',
+		city: '',
+		street: '',
+		house_number: ''
+	};
 
-  let identity: Identity = {
-    username: '',
-    name: '',
-    surname: '',
-    phone: '',
-    city: '',
-    street: '',
-    house_number: '',
-  };
-  
+	let bankAccount: BankAccount = {
+		id: 0,
+		account_number: '',
+		is_locked: false,
+		balance: 0
+	};
+
 	onMount(async () => {
-    identity = {
-      ...await getUserDetails(),
-      ...await getUserParentProfile(),
-    };
+		identity = {
+			...(await getUserDetails()),
+			...(await getUserParentProfile())
+		};
+		bankAccount = await getUserBankAccount();
 	});
 
 	let selectedTab: 'identity' | 'password' = 'identity';
 
-  let oldPassword = '';
+	let oldPassword = '';
 	let newPassword = '';
 	let confirmPassword = '';
 
 	let error = '';
 
+	var moneyDialogOpen = false;
+	var operation: 'Deposit' | 'Withdraw' = 'Deposit';
+
 	async function handleIdentitySave() {
 		try {
 			await updateIdentity({
-        username: identity.username,
-      });
-      await updateUserParentProfile({
-        name: identity.name,
-        surname: identity.surname,
-        phone: identity.phone,
-        city: identity.city,
-        street: identity.street,
-        house_number: identity.house_number,
-      });
+				username: identity.username
+			});
+			await updateUserParentProfile({
+				name: identity.name,
+				surname: identity.surname,
+				phone: identity.phone,
+				city: identity.city,
+				street: identity.street,
+				house_number: identity.house_number
+			});
 		} catch (e) {
 			error = (e as Error).message;
 			console.error(error);
@@ -65,137 +84,201 @@
 
 		try {
 			await updatePassword(oldPassword, newPassword);
-      await logout();
-      goto('/login');
+			await logout();
+			goto('/login');
 		} catch (e) {
 			error = (e as Error).message;
 			console.error(error);
 		}
 	}
+
+	$: if (!moneyDialogOpen) {
+		(async () => {
+      await getUserBankAccount().then((updatedAccount) => {
+        if (updatedAccount) {
+          bankAccount = updatedAccount;
+        }
+      });
+		})();
+	}
 </script>
 
-<div class="min-h-dvh flex justify-center items-center flex-col">
-  <Tabs.Root bind:value={selectedTab} class="size-[500px]">
-    <Tabs.List class="grid grid-cols-2">
-      <Tabs.Trigger class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background" value="identity">Identity</Tabs.Trigger>
-      <Tabs.Trigger class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background" value="password">Password</Tabs.Trigger>
-    </Tabs.List>
-    <Tabs.Content value="identity" id="tabs-content">
-      <Card.Root>
-        <Card.Header class="text-center">
-          <Card.Title>Your identity</Card.Title>
-        </Card.Header>
-        <form on:submit={handleIdentitySave}>
-          <Card.Content class="grid gap-2">
-            <div>
-              <Label for="username">Username</Label>
-              <Input
-                id="username"
-                required
-                bind:value={identity!.username}
-                placeholder="Enter username" />
-            </div>
-            <div>
-              <Label for="name">Name</Label>
-              <Input
-                id="name"
-                required
-                bind:value={identity.name}
-                placeholder="Enter name"
-              />
-            </div>
-            <div>
-              <Label for="surname">Surname</Label>
-              <Input
-                id="surname"
-                required
-                bind:value={identity.surname}
-                placeholder="Enter surname"
-              />
-            </div>
-            <div>
-              <Label for="phone">Phone</Label>
-              <Input
-                id="phone"
-                required
-                type="tel"
-                bind:value={identity.phone}
-                placeholder="Enter phone"
-              />
-            </div>
-            <div>
-              <Label for="city">City</Label>
-              <Input
-                id="city"
-                required
-                bind:value={identity.city}
-                placeholder="Enter city"
-              />
-            </div>
-            <div>
-              <Label for="street">Street</Label>
-              <Input
-                id="street"
-                required
-                bind:value={identity.street}
-                placeholder="Enter street"
-              />
-            </div>
-            <div>
-              <Label for="house_number">House number</Label>
-              <Input
-                id="house_number"
-                required
-                bind:value={identity.house_number}
-                placeholder="Enter house number"
-              />
-            </div>
-          </Card.Content>
-          <Card.Footer>
-            <Button class="ms-auto" type="submit">Save</Button>
-          </Card.Footer>
-        </form>
-      </Card.Root>
-    </Tabs.Content>
-    <Tabs.Content value="password">
-      <Card.Root>
-        <Card.Header class="text-center">
-          <Card.Title>Change password</Card.Title>
-        </Card.Header>
-        <form on:submit={handlePasswordSave}>
-          <Card.Content class="space-y-2">
-            <div class="space-y-1">
-              <Label for="old-password">Old password</Label>
-              <Input type="password" required id="old-password" bind:value={oldPassword} placeholder="Enter old passowrd" />
-            </div>
-            <div class="space-y-1">
-              <Label for="new-password">New password</Label>
-              <Input type="password" required id="new-password" bind:value={newPassword} placeholder="Enter new passowrd" />
-            </div>
-            <div class="space-y-1">
-              <Label for="confirm-password">Confirm password</Label>
-              <Input
-                id="confirm-password"
-                required
-                bind:value={confirmPassword}
-                type="password"
-                placeholder="confirm password"
-              />
-            </div>
-          </Card.Content>
-          <Card.Footer>
-            <Button class="ms-auto" type="submit">Save</Button>
-          </Card.Footer>
-        </form>
-      </Card.Root>
-    </Tabs.Content>
-  </Tabs.Root>
-  {#if error}
-    <div class="mt-2">
-      <Alert.Root variant="destructive">
-        <CircleAlert class="h-4 w-4" />
-        <Alert.Title>{error}</Alert.Title>
-      </Alert.Root>
-    </div>
-  {/if}
+<div class="flex min-h-dvh flex-col items-center justify-center">
+	<Tabs.Root bind:value={selectedTab} class="size-[500px]">
+		<Tabs.List class="grid grid-cols-3">
+			<Tabs.Trigger
+				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
+				value="identity">Identity</Tabs.Trigger
+			>
+			<Tabs.Trigger
+				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
+				value="password">Password</Tabs.Trigger
+			>
+			<Tabs.Trigger
+				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
+				value="bank_account">Internal Bank Account</Tabs.Trigger
+			>
+		</Tabs.List>
+		<Tabs.Content value="identity" id="tabs-content">
+			<Card.Root>
+				<Card.Header class="text-center">
+					<Card.Title>Your identity</Card.Title>
+				</Card.Header>
+				<form on:submit={handleIdentitySave}>
+					<Card.Content class="grid gap-2">
+						<div>
+							<Label for="username">Username</Label>
+							<Input
+								id="username"
+								required
+								bind:value={identity!.username}
+								placeholder="Enter username"
+							/>
+						</div>
+						<div>
+							<Label for="name">Name</Label>
+							<Input id="name" required bind:value={identity.name} placeholder="Enter name" />
+						</div>
+						<div>
+							<Label for="surname">Surname</Label>
+							<Input
+								id="surname"
+								required
+								bind:value={identity.surname}
+								placeholder="Enter surname"
+							/>
+						</div>
+						<div>
+							<Label for="phone">Phone</Label>
+							<Input
+								id="phone"
+								required
+								type="tel"
+								bind:value={identity.phone}
+								placeholder="Enter phone"
+							/>
+						</div>
+						<div>
+							<Label for="city">City</Label>
+							<Input id="city" required bind:value={identity.city} placeholder="Enter city" />
+						</div>
+						<div>
+							<Label for="street">Street</Label>
+							<Input id="street" required bind:value={identity.street} placeholder="Enter street" />
+						</div>
+						<div>
+							<Label for="house_number">House number</Label>
+							<Input
+								id="house_number"
+								required
+								bind:value={identity.house_number}
+								placeholder="Enter house number"
+							/>
+						</div>
+					</Card.Content>
+					<Card.Footer>
+						<Button class="ms-auto" type="submit">Save</Button>
+					</Card.Footer>
+				</form>
+			</Card.Root>
+		</Tabs.Content>
+		<Tabs.Content value="password">
+			<Card.Root>
+				<Card.Header class="text-center">
+					<Card.Title>Change password</Card.Title>
+				</Card.Header>
+				<form on:submit={handlePasswordSave}>
+					<Card.Content class="space-y-2">
+						<div class="space-y-1">
+							<Label for="old-password">Old password</Label>
+							<Input
+								type="password"
+								required
+								id="old-password"
+								bind:value={oldPassword}
+								placeholder="Enter old passowrd"
+							/>
+						</div>
+						<div class="space-y-1">
+							<Label for="new-password">New password</Label>
+							<Input
+								type="password"
+								required
+								id="new-password"
+								bind:value={newPassword}
+								placeholder="Enter new passowrd"
+							/>
+						</div>
+						<div class="space-y-1">
+							<Label for="confirm-password">Confirm password</Label>
+							<Input
+								id="confirm-password"
+								required
+								bind:value={confirmPassword}
+								type="password"
+								placeholder="confirm password"
+							/>
+						</div>
+					</Card.Content>
+					<Card.Footer>
+						<Button class="ms-auto" type="submit">Save</Button>
+					</Card.Footer>
+				</form>
+			</Card.Root>
+		</Tabs.Content>
+		<Tabs.Content value="bank_account">
+			<Card.Root>
+				<Card.Header class="text-center">
+					<Card.Title>Internal Bank Account</Card.Title>
+				</Card.Header>
+				<Card.Content>
+					<Card.Content>
+						<div class="space-y-4">
+							<div class="flex flex-col">
+								<span class="text-sm font-semibold text-gray-500">IBAN Number</span>
+								<span class="font-mono text-lg text-gray-800">{bankAccount.account_number}</span>
+							</div>
+
+							<div class="flex flex-col">
+								<span class="text-sm font-semibold text-gray-500">Available Money</span>
+								<span class="font-mono text-lg text-gray-800">
+									{bankAccount.balance?.toLocaleString(undefined, {
+										style: 'currency',
+										currency: 'PLN'
+									})}
+								</span>
+							</div>
+						</div>
+						<div class="flex flex-wrap justify-end space-x-2 pt-4">
+							<Button
+								variant="outline"
+								on:click={() => {
+									operation = 'Withdraw';
+									moneyDialogOpen = true;
+								}}>Withdraw Money</Button
+							>
+							<Button
+								on:click={() => {
+									operation = 'Deposit';
+									moneyDialogOpen = true;
+								}}>Deposit Money</Button
+							>
+						</div>
+					</Card.Content>
+				</Card.Content>
+			</Card.Root>
+		</Tabs.Content>
+	</Tabs.Root>
+	{#if error}
+		<div class="mt-2">
+			<Alert.Root variant="destructive">
+				<CircleAlert class="h-4 w-4" />
+				<Alert.Title>{error}</Alert.Title>
+			</Alert.Root>
+		</div>
+	{/if}
 </div>
+
+{#if moneyDialogOpen}
+	<ExternalMoneyOperation bind:open={moneyDialogOpen} {operation} />
+{/if}
