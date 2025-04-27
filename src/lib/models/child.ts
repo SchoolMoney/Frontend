@@ -10,7 +10,6 @@ export type AddChild = {
   name: string;
   surname: string;
   birth_date: string;
-  parent_id: number;
   group_id: number; 
 }
 
