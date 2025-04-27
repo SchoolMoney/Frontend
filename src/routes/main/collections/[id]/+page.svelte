@@ -22,6 +22,7 @@
 	import { getSessionData } from '../../../../lib/api/auth';
 	import { Privilege } from '../../../../lib/models/auth';
 	import { api_middleware } from '$lib/api_middleware';
+	import { showToast } from '$lib/stores/toast';
 
 	let collection: Collection = {
 		id: 0,
@@ -130,19 +131,31 @@
 	}
 
 	async function payForChild(childId: number) {
-		await api_middleware.put(`/api/collection/${collection.id}/pay/${childId}`, {});
+		try {
+			await api_middleware.put(`/api/collection/${collection.id}/pay/${childId}`, {});
+		} catch (e) {
+			showToast('error', `${(e as Error).message}`);
+		}
 		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
 		children = data.children;
 	}
 
 	async function unsubscribeChild(childId: number) {
-		await api_middleware.put(`/api/collection/${collection.id}/unsubscribe/${childId}`, {});
+		try {
+			await api_middleware.put(`/api/collection/${collection.id}/unsubscribe/${childId}`, {});
+		} catch (e) {
+			showToast('error', `${(e as Error).message}`);
+		}
 		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
 		children = data.children;
 	}
 
 	async function restoreChild(childId: number) {
-		await api_middleware.put(`/api/collection/${collection.id}/restore/${childId}`, {});
+		try {
+			await api_middleware.put(`/api/collection/${collection.id}/restore/${childId}`, {});
+		} catch (e) {
+			showToast('error', `${(e as Error).message}`);
+		}
 		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
 		children = data.children;
 	}
