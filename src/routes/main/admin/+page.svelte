@@ -13,10 +13,9 @@
 	import { getSessionData } from '$lib/api/auth';
   import { Privilege, privilegeLabels, statusLabels } from '$lib/models/auth';
 	import { Input } from '$lib/components/ui/input';
-	import { Confirm } from '$lib/components/custom/confirm';
   import { getParents } from '$lib/api/parent';
-	import type { AddChild, Child } from '$lib/models/child';
-	import { addChild, getChildren, updateChild, deleteChild } from '$lib/api/child';
+	import type { Child } from '$lib/models/child';
+	import { getChildren } from '$lib/api/child';
 	import * as Select from '$lib/components/ui/select';
   import { getUserAccountByParentId, updateUserAccountPrivilege, updateUserAccountStatus } from '$lib/api/user_account';
 
@@ -27,29 +26,12 @@
 	let errorTimeout: NodeJS.Timeout;
 
 	let classes: ClassGroup[] = [];
-  let selectedClassGroupId: number = 0;
-  let selectedClassGroupIdToDelete: number = 0;
-  let addClassRequest: AddClassGroup = {
-    name: '',
-    description: ''
-  };
 	let isLoadingClasses = true;
-  let isConfirmClassDialogOpen = false;
-  let showAddingClass = false;
 
 	let parents: Parent[] = [];
-  let addChildRequest: AddChild = {
-    name: '',
-    surname: '',
-    birth_date: undefined,
-    parent_id: 0,
-    group_id: 0,
-  };
   let childToUpdate: Child & {
     parent_id: number;
   } | undefined;
-  let isConfirmChildDialogOpen = false;
-  let selectedChildToDelete: Child & { parent_id: number } | undefined;
 	let isLoadingParents = true;
 
   let selectedParentToChangeStatus: Parent = undefined;
@@ -114,160 +96,9 @@
     isLoadingParents = false;
 	});
 
-  function handleClassGroupEditClick(classId: number) {
-    selectedClassGroupId = classId;
-  }
-
-  function handleClassGroupDeleteClick(classId: number) {
-    selectedClassGroupIdToDelete = classId;
-    isConfirmClassDialogOpen = true;
-  }
-
-  async function confirmDeleteClassGroup() {
-    try {
-      await deleteClass(selectedClassGroupIdToDelete);
-      isConfirmClassDialogOpen = false;
-      classes = classes.filter(c => c.id !== selectedClassGroupIdToDelete);
-      selectedClassGroupIdToDelete = 0;
-    } catch (error) {
-      errorMessage = error.message;
-      showError();
-		}
-  }
-
-  async function handleClassGroupSaveClick() {
-		try {
-			await updateClass({
-        ...classes.find(c => c.id === selectedClassGroupId)!
-      });
-
-      selectedClassGroupId = 0;
-		} catch (error) {
-      errorMessage = error.message;
-      showError();
-		}
-  }
-
-  function handleClassGroupCancelClick() {
-    selectedClassGroupId = 0;
-  }
-
 	function handleClassGroupDetailsClick(classId: number) {
 		goto(`/main/classes/class-view?class_group_id=${classId}`);
 	}
-
-  function handleAddClassClick() {
-    showAddingClass = true;
-  }
-
-  function handleCancelAddClassClick() {
-    showAddingClass = false;
-  }
-
-  async function handleAddClassGroupSaveClick() {
-    try {
-      await addClass(addClassRequest);
-      addClassRequest = {
-        name: '',
-        description: '',
-      };
-      showAddingClass = false;
-      await fetchClasses();
-    } catch (error) {
-      errorMessage = error.message;
-      showError();
-    }
-  }
-
-  function handleAddParentChildClick({ id, surname }: Parent) {
-    addChildRequest.parent_id = id;
-    addChildRequest.surname = surname;
-  }
-
-  function handleCancelAddParentChildClick() {
-    addChildRequest = {
-      name: '',
-      surname: '',
-      birth_date: undefined,
-      parent_id: 0,
-      group_id: 0,
-    };
-  }
-
-  async function handleAddParentChildSaveClick() {
-    try {
-      const newParentChild = await addChild(addChildRequest);
-      const index = parents.findIndex(p => p.id === addChildRequest.parent_id);
-      const children = [
-        newParentChild,
-        ...parents[index].children,
-      ];
-      children.push();
-      parents[index].children = children;
-      addChildRequest = {
-        name: '',
-        surname: '',
-        birth_date: undefined,
-        parent_id: 0,
-        group_id: 0,
-      };
-    } catch (error) {
-      errorMessage = error.message;
-      showError();
-    }
-  }
-
-  function handleEditParentChildClick(child: Child, parent_id: number) {
-    childToUpdate = {
-      ...child,
-      parent_id,
-    };
-  }
-
-  function handleDeleteParentChildClick(child: Child, parent_id: number) {
-    selectedChildToDelete = { ...child, parent_id };
-    isConfirmChildDialogOpen = true;
-  }
-
-  function handleCancelEditParentChildClick() {
-    childToUpdate = undefined;
-  }
-
-  async function handleEditParentChildSaveClick() {
-    try {
-      await updateChild(childToUpdate.id, {
-        name: childToUpdate.name,
-        surname: childToUpdate.surname,
-        birth_date: childToUpdate.birth_date,
-        group_id: childToUpdate.group_id,
-      });
-
-      const parentIndex = parents.findIndex(p => p.id === childToUpdate.parent_id);
-      const childIndex = parents[parentIndex].children.findIndex(c => c.id === childToUpdate.id);
-      parents[parentIndex].children[childIndex] = {
-        ...childToUpdate
-      };
-      childToUpdate = undefined;
-    } catch (error) {
-      errorMessage = error.message;
-      showError();
-    }
-  }
-
-  async function confirmDeleteChild() {
-    try {
-      await deleteChild(selectedChildToDelete!.id);
-
-      const parentIndex = parents.findIndex(p => p.id === selectedChildToDelete!.parent_id);
-      parents[parentIndex].children = parents[parentIndex].children.filter(c => c.id !== selectedChildToDelete!.id);
-
-      selectedChildToDelete = undefined;
-      isConfirmChildDialogOpen = false;
-    } catch (error) {
-      errorMessage = error.message;
-      showError();
-    }
-  }
 
   function handleEditParentStatusClick(parent: Parent) {
     selectedParentToChangeStatus = {
@@ -315,9 +146,6 @@
   }
 
 </script>
-
-<Confirm isOpen={isConfirmClassDialogOpen} onCancel={() => isConfirmClassDialogOpen = false} onConfirm={confirmDeleteClassGroup} />
-<Confirm isOpen={isConfirmChildDialogOpen} onCancel={() => isConfirmChildDialogOpen = false} onConfirm={confirmDeleteChild} />
 
 <div class="min-h-dvh">
 	{#if showErrorPopup}
