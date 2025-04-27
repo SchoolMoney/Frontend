@@ -56,6 +56,7 @@
   let selectedParentToChangePrivilege: Parent = undefined;
 
   let parentSearchQuery = '';
+  let classGroupSearchQuery = '';
 
   function getClassName(class_id: number): string {
     return classes.find(c => c.id === class_id)?.name ?? '';
@@ -331,41 +332,19 @@
 
 	<div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8 p-4">
 		<div class="flex flex-col">
-			<h2 class="text-center text-4xl font-bold mb-8">
-				Classes
-				<Button
-					class="bg-transparent hover:bg-green-600/10 text-green-600 mt-auto"
-					on:click={handleAddClassClick}>
-					<Plus class="h-4 w-4" />
-				</Button>
-			</h2>
+			<h2 class="text-center text-4xl font-bold mb-8">Classes</h2>
 
-			{#if showAddingClass}
-				<form on:submit={handleAddClassGroupSaveClick}>
-					<Card class="h-full transition-shadow hover:shadow-md">
-						<CardHeader>
-							<CardTitle>
-								<Input required bind:value={addClassRequest.name} placeholder="Set name" />
-							</CardTitle>
-							<CardDescription>
-								<Input bind:value={addClassRequest.description} placeholder="Set description" />
-							</CardDescription>
-						</CardHeader>
-						<CardContent class="flex justify-end gap-2">
-							<Button
-								variant="secondary"
-								on:click={handleCancelAddClassClick}>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
-								Save
-							</Button>
-						</CardContent>
-					</Card>
-				</form>
-			{/if}
+			<div class="mb-2">
+				<div class="relative">
+					<Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<Input
+						id="classGroupSearchInput"
+						bind:value={classGroupSearchQuery}
+						placeholder="Search groups by name..."
+						class="pl-10"
+					/>
+				</div>
+			</div>
 
 			{#if isLoadingClasses}
 				<div class="flex justify-center items-center h-64">
@@ -378,62 +357,23 @@
 			{/if}
 
 				<div class="grid grid-cols-2 gap-4 mt-10">
-
-
-					{#each classes as classGroup (classGroup.id)}
-						<form on:submit={handleClassGroupSaveClick}>
-							<Card class="h-full transition-shadow hover:shadow-md">
-								<CardHeader>
-									<CardTitle>
-										{#if classGroup.id === selectedClassGroupId}
-											<Input required bind:value={classGroup.name} placeholder="Edit name" />
-										{:else}
-											{classGroup.name}
-										{/if}
-									</CardTitle>
-									<CardDescription>
-										{#if classGroup.id === selectedClassGroupId}
-											<Input bind:value={classGroup.description} placeholder="Edit description" />
-										{:else}
-											{classGroup.description}
-										{/if}
-									</CardDescription>
-								</CardHeader>
-								<CardContent class="flex justify-between">
-									{#if classGroup.id === selectedClassGroupId}
-										<div class="flex justify-end gap-2 w-full">
-											<Button
-												variant="secondary"
-												on:click={handleClassGroupCancelClick}>
-												Cancel
-											</Button>
-											<Button
-												type="submit"
-												class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
-												Save
-											</Button>
-										</div>
-									{:else}
-										<div>
-											<Button
-												class="bg-transparent text-green-600 hover:bg-green-600/10 p-2"
-												on:click={() => handleClassGroupEditClick(classGroup.id)}>
-												<Pencil class="scale-75" />
-											</Button>
-											<Button
-												class="bg-transparent text-red-600 hover:bg-red-600/10 p-2"
-												on:click={() => handleClassGroupDeleteClick(classGroup.id)}>
-												<Trash class="scale-75" />
-											</Button>
-										</div>
-										<Button
-											on:click={() => handleClassGroupDetailsClick(classGroup.id)}>
-											Details
-										</Button>
-									{/if}
-								</CardContent>
-							</Card>
-						</form>
+					{#each classes.filter(classGroup => {
+						if (!classGroupSearchQuery.trim()) return true;
+						const query = classGroupSearchQuery.toLowerCase().trim();
+						return `${classGroup.name}`.toLowerCase().includes(query);
+					}) as classGroup (classGroup.id)}
+            <Card class="h-full transition-shadow hover:shadow-md">
+              <CardHeader>
+                <CardTitle>{classGroup.name}</CardTitle>
+                <CardDescription>{classGroup.description}</CardDescription>
+              </CardHeader>
+              <CardContent class="flex justify-between">
+                <Button
+                  on:click={() => handleClassGroupDetailsClick(classGroup.id)}>
+                  Details
+                </Button>
+              </CardContent>
+            </Card>
 					{/each}
 				</div>
 		</div>
@@ -555,102 +495,14 @@
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								{#if addChildRequest.parent_id !== parent.id && childToUpdate?.parent_id !== parent.id}
-                  <span class="flex items-center">
-                    Children
-                    <Button class="ms-2 bg-transparent hover:bg-green-600/10 text-green-600 mt-auto p-0 h-auto" on:click={() => handleAddParentChildClick(parent)}>
-                      <Plus class="scale-50" />
-                    </Button>
-                  </span>
-									<ul class="grid gap-2 mt-2">
-										{#each parent.children as child (child.id)}
-											<li class="flex align-center">
-												<Button
-													class="bg-transparent text-green-600 hover:bg-green-600/10 p-0 h-auto"
-													on:click={() => handleEditParentChildClick(child, parent.id)}>
-													<Pencil class="scale-50" />
-												</Button>
-												<Button
-													class="bg-transparent text-red-600 hover:bg-red-600/10 p-0 h-auto"
-													on:click={() => handleDeleteParentChildClick(child, parent.id)}>
-													<Trash class="scale-50" />
-												</Button>
-												<span>{child.name} {child.surname} {child.birth_date} (Class: {getClassName(child.group_id)})</span>
-											</li>
-										{/each}
-									</ul>
-								{/if}
-
-								{#if parent.id === addChildRequest.parent_id}
-									<form on:submit={handleAddParentChildSaveClick} class="grid gap-2">
-										<div class="grid gap-2 grid-cols-2 grid-rows-2">
-											<Input required bind:value={addChildRequest.name} placeholder="Enter name" />
-											<Input required bind:value={addChildRequest.surname} placeholder="Enter surname" />
-											<Input required type="date" bind:value={addChildRequest.birth_date} placeholder="Enter birth date" />
-											<Select.Root
-												onSelectedChange={(v) => {
-                          addChildRequest.group_id = v?.value ?? 0;
-                        }}>
-												<Select.Trigger>
-													<Select.Value placeholder="Select class group" />
-												</Select.Trigger>
-												<Select.Content>
-													{#each classes as classGroup}
-														<Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
-													{/each}
-												</Select.Content>
-											</Select.Root>
-										</div>
-										<div class="flex justify-end gap-2">
-											<Button
-												variant="secondary"
-												on:click={handleCancelAddParentChildClick}>
-												Cancel
-											</Button>
-											<Button
-												type="submit"
-												class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
-												Save
-											</Button>
-										</div>
-									</form>
-								{/if}
-
-								{#if parent.id === childToUpdate?.parent_id}
-									<form on:submit={handleEditParentChildSaveClick} class="grid gap-2 mt-2">
-										<div class="grid gap-2 grid-cols-2 grid-rows-2">
-											<Input required bind:value={childToUpdate.name} placeholder="Enter name" />
-											<Input required bind:value={childToUpdate.surname} placeholder="Enter surname" />
-											<Input required type="date" bind:value={childToUpdate.birth_date} placeholder="Enter birth date" />
-											<Select.Root
-												selected={ {value: childToUpdate.group_id, label: getClassName(childToUpdate.group_id) } }
-												onSelectedChange={(v) => {
-                          childToUpdate.group_id = v?.value ?? 0;
-                        }}>
-												<Select.Trigger>
-													<Select.Value placeholder="Select class group" />
-												</Select.Trigger>
-												<Select.Content>
-													{#each classes as classGroup}
-														<Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
-													{/each}
-												</Select.Content>
-											</Select.Root>
-										</div>
-										<div class="flex justify-end gap-2">
-											<Button
-												variant="secondary"
-												on:click={handleCancelEditParentChildClick}>
-												Cancel
-											</Button>
-											<Button
-												type="submit"
-												class="bg-green-600 text-white mt-auto hover:bg-opacity-85">
-												Save
-											</Button>
-										</div>
-									</form>
-								{/if}
+                <span class="flex items-center">Children</span>
+                <ul class="grid gap-2 mt-2">
+                  {#each parent.children as child (child.id)}
+                    <li class="flex align-center">
+                      <span>{child.name} {child.surname} {child.birth_date} (Class: {getClassName(child.group_id)})</span>
+                    </li>
+                  {/each}
+                </ul>
 							</CardContent>
 						</Card>
 					{/each}
