@@ -127,6 +127,7 @@ async function fetchClasses() {
       await updateChild(selectedChildId, childUpdateRequest);
 
       selectedChildId = 0;
+      await fetchUserChildren();
     } catch (error) {
       errorMessage = error.message;
       showError();
@@ -175,9 +176,10 @@ async function fetchClasses() {
 		<div class="flex justify-center items-center h-64">
 			<p>Loading children...</p>
 		</div>
-	{:else if !children?.length}
-    <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No children found.</div>
 	{:else}
+	  {#if !children?.length}
+      <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No children found.</div>
+    {/if}
 		<div class="w-full overflow-y-auto max-h-[calc(100vh-150px)]">
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
         {#if showAddingChild}

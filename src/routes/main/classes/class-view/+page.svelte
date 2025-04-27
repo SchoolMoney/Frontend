@@ -53,6 +53,7 @@
         name: '',
         surname: '',
       };
+      selectedParentIdToSwitchToCashier = classGroupCashier.id;
 		} catch (error) {
 			showErrorPopup = true;
 			errorMessage = error.message || 'An error occurred while fetching data';
@@ -111,7 +112,7 @@
     alert('TODO');
 	}
 
-  function handleChangeCashierClick(parent_id: number) {
+  function handleChangeCashierClick() {
     showChangeClassGroupCashier = true;
   }
 
@@ -126,10 +127,10 @@
       const oldCashierIndex = classViewData?.parents.findIndex(p => p.role === GroupRole.CASHIER);
       const newCashierIndex = classViewData?.parents.findIndex(p => p.id === selectedParentIdToSwitchToCashier);
 
-      if (oldCashierIndex !== -1) {
+      if (selectedParentIdToSwitchToCashier !== classViewData?.requester.parent_id) {
         classViewData!.parents[oldCashierIndex].role = GroupRole.MEMBER;
+        classViewData!.requester.group_role = GroupRole.MEMBER;
       }
-
       classViewData!.parents[newCashierIndex].role = GroupRole.CASHIER;
 
       selectedParentIdToSwitchToCashier = 0;
@@ -195,7 +196,7 @@
             Show report
 					</Button>
 
-					{#if classViewData.requester?.group_role === GroupRole.CASHIER || loggedUserPrivilige === Privilege.ADMIN_USER}
+					{#if classViewData.requester?.group_role === GroupRole.CASHIER}
             <Button
               class="bg-green-500 text-white mt-auto hover:bg-opacity-85 ms-2 gap-2"
               on:click={handleAddCollection}>
@@ -261,7 +262,7 @@
 					<div>
 						<div class="mb-4 flex gap-2 items-center">
               <h2 class="text-xl font-semibold ">Parents</h2>
-              {#if loggedUserPrivilige === Privilege.ADMIN_USER && showChangeClassGroupCashier === false}
+              {#if showChangeClassGroupCashier === false && classViewData.requester?.group_role === GroupRole.CASHIER}
                 <Button
                   variant="default"
                   class="bg-transparent text-blue-600 hover:bg-blue-600/10 p-2 h-auto"
@@ -271,7 +272,7 @@
               {/if}
               
               {#if showChangeClassGroupCashier}
-                <form on:submit={handleChangeCashierSaveClick} class="flex gap-2 w-full">
+                <form on:submit|preventDefault={handleChangeCashierSaveClick} class="flex gap-2 w-full">
                   <Select.Root
                     selected={ { value: classGroupCashier?.id, label: `${classGroupCashier?.name ?? ''} ${classGroupCashier?.surname}` }}
                     onSelectedChange={(v) => {

@@ -155,9 +155,10 @@
 		<div class="flex justify-center items-center h-64">
 			<p>Loading class groups...</p>
 		</div>
-	{:else if !classes?.length}
-    <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No class groups found.</div>
 	{:else}
+	  {#if !classes?.length}
+      <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No class groups found.</div>
+    {/if}
 		<div class="w-full overflow-y-auto max-h-[calc(100vh-150px)]">
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
         {#if showAddingClass}

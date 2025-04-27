@@ -202,7 +202,7 @@
 					</Button>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end">
-					<DropdownMenu.Item on:click={()=>{goto('account')}}>Account</DropdownMenu.Item>
+					<DropdownMenu.Item on:click={()=>{goto('/main/account')}}>Account</DropdownMenu.Item>
 					<DropdownMenu.Separator />
 					<DropdownMenu.Item on:click={()=>{logout(); goto('/login')}}>Logout</DropdownMenu.Item>
 				</DropdownMenu.Content>
