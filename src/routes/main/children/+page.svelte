@@ -133,6 +133,11 @@ async function fetchClasses() {
     }
   }
 
+  function handleChildDeleteClick(child_id: number) {
+    selectedChildIdToDelete = child_id;
+    isConfirmChildDialogOpen = true;
+  }
+
   function handleChildEditClick(child_id: number) {
     selectedChildId = child_id;
   }
