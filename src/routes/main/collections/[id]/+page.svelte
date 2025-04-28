@@ -449,7 +449,7 @@
 							</div>
 							<div>
 								<Label>Price</Label>
-								<Input value={collection.price}></Input>
+								<Input disabled value={collection.price}></Input>
 							</div>
 							<div>
 								<Label>Start Date</Label>
