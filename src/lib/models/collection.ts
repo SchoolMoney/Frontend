@@ -20,6 +20,7 @@ export enum CollectionStatus {
   FINISHED = 1,
   NOT_PAID_BEFORE_DEADLINE = 2,
   CANCELLED = 3,
+  BLOCKED = 4,
 }
 
 export const statusLabels: Map<CollectionStatus, string> = new Map([
@@ -27,6 +28,7 @@ export const statusLabels: Map<CollectionStatus, string> = new Map([
   [CollectionStatus.FINISHED, 'Finished'],
   [CollectionStatus.NOT_PAID_BEFORE_DEADLINE, 'Not paid before deadline'],
   [CollectionStatus.CANCELLED, 'Cancelled'],
+  [CollectionStatus.BLOCKED, 'Blocked'],
 ]);
 
 export const statusColors: Map<CollectionStatus, string> = new Map([

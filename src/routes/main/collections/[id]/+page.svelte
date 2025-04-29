@@ -232,6 +232,19 @@
 		}
 	}
 
+	async function toggleCollectionBlock() {
+		try {
+			if (collection.status === CollectionStatus.BLOCKED) {
+				await api_middleware.put(`/api/collection/${collection.id}/unblock`, {});
+			} else {
+				await api_middleware.put(`/api/collection/${collection.id}/block`, {});
+			}
+			window.location.reload();
+		} catch (e) {
+			showToast('error', `${(e as Error).message}`);
+		}
+	}
+
 	function handleFileSelect(event) {
 		const file = event.target.files[0];
 		if (file) {
@@ -511,18 +524,24 @@
 							</div>
 						</div>
 						<div class="flex gap-2">
-							{#if isAdmin || (requester && requester.role === 2)}
+							{#if requester && requester.role === 2}
 								<Button
 									on:click={() => {
 										openWithdrawDialog = true;
 									}}>Withdraw</Button
 								>
 								<Button variant="destructive" on:click={cancelCollection}>Cancel collection</Button>
+							{/if}
+							{#if isAdmin || (requester && requester.role === 2)}
 								<Button variant="outline" on:click={startEditing}>Edit</Button>
 							{/if}
 							<Button variant="outline" on:click={generateReport}>Report</Button>
 							{#if isAdmin}
-								<Button variant="destructive">Block</Button>
+								<Button
+									variant={`${collection.status != CollectionStatus.BLOCKED ? 'destructive' : 'default'}`}
+									on:click={toggleCollectionBlock}
+									>{`${collection.status != CollectionStatus.BLOCKED ? 'Block' : 'Unblock'}`}</Button
+								>
 							{/if}
 						</div>
 					</div>
@@ -604,7 +623,7 @@
 										</td>
 										<td class="border-b p-3">{child.operation_date || '-'}</td>
 										<td class="border-b p-3">
-											{#if child.operation === null}
+											{#if child.operation === null && collection.status === CollectionStatus.OPEN && !isAdmin}
 												<div class="flex gap-2">
 													<Button
 														size="sm"
