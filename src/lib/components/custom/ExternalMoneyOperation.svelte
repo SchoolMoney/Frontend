@@ -15,14 +15,14 @@
 	var iban: string = '';
 
 	async function handleSubmit() {
-        if (operation === 'Withdraw' && !iban) {
-            error = 'Please provide IBAN number';
-            return;
-        }
-        if (amount <= 0) {
-            error = 'Please provide a valid amount';
-            return;
-        }
+		if (operation === 'Withdraw' && !iban) {
+			error = 'Please provide IBAN number';
+			return;
+		}
+		if (amount <= 0) {
+			error = 'Please provide a valid amount';
+			return;
+		}
 		try {
 			if (operation === 'Deposit') {
 				const url = '/api/bank_account/user/deposit';
@@ -39,8 +39,9 @@
 				await api_middleware.post(url, body);
 			}
 			open = false;
-		} catch (error) {
-			console.error('Error during operation:', error);
+		} catch (e) {
+			error = (e as Error).message;
+			console.error('Error during operation:', e);
 		}
 	}
 </script>
@@ -50,7 +51,9 @@
 		<Dialog.Content class="sm:max-w-[425px]">
 			<Dialog.Header>
 				<Dialog.Title>{operation} Money</Dialog.Title>
-				<Dialog.Description>{operation} money to internal bank account</Dialog.Description>
+				<Dialog.Description
+					>{operation} money {operation === 'Deposit' ? 'to' : 'from'} internal bank account</Dialog.Description
+				>
 			</Dialog.Header>
 			<form class="grid items-start gap-4" on:submit={handleSubmit}>
 				<div class="grid gap-2">
@@ -65,14 +68,14 @@
 				{/if}
 				<Button type="submit">{operation} Money</Button>
 			</form>
-            {#if error}
-                <div class="absolute top-full mt-1 w-full">
-                    <Alert.Root variant="destructive">
-                        <CircleAlert class="h-4 w-4" />
-                        <Alert.Title>{error}</Alert.Title>
-                    </Alert.Root>
-                </div>
-            {/if}
+			{#if error}
+				<div class="absolute top-full mt-1 w-full">
+					<Alert.Root variant="destructive">
+						<CircleAlert class="h-4 w-4" />
+						<Alert.Title>{error}</Alert.Title>
+					</Alert.Root>
+				</div>
+			{/if}
 		</Dialog.Content>
 	</Dialog.Root>
 </div>
