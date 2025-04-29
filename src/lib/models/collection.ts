@@ -43,21 +43,24 @@ export const statusTextColors: Map<CollectionStatus, string> = new Map([
   [CollectionStatus.FINISHED, `text-green-600`],
   [CollectionStatus.NOT_PAID_BEFORE_DEADLINE, `text-yellow-600`],
   [CollectionStatus.CANCELLED, `text-red-600`],
+  [CollectionStatus.BLOCKED, `text-yellow-600`],
 ]);
 
 export const statusBorderColors: Map<CollectionStatus, string> = new Map([
-  [CollectionStatus.OPEN, ''],
+  [CollectionStatus.OPEN, 'border-blue-600'],
   [CollectionStatus.FINISHED, `border-green-600`],
   [CollectionStatus.NOT_PAID_BEFORE_DEADLINE, `border-yellow-600`],
   [CollectionStatus.CANCELLED, `border-red-600`],
+  [CollectionStatus.BLOCKED, `border-yellow-600`],
 ]);
 
 const baseVariant = 'rounded-md shadow-md p-4 transition-colors';
 export const cardVariants: Map<CollectionStatus, string> = new Map([
-  [CollectionStatus.OPEN, `${baseVariant}`],
+  [CollectionStatus.OPEN, `${baseVariant} ${statusBorderColors.get(CollectionStatus.OPEN)}`],
   [CollectionStatus.FINISHED, `${baseVariant} ${statusBorderColors.get(CollectionStatus.FINISHED)}`],
   [CollectionStatus.NOT_PAID_BEFORE_DEADLINE, `${baseVariant} ${statusBorderColors.get(CollectionStatus.NOT_PAID_BEFORE_DEADLINE)}`],
   [CollectionStatus.CANCELLED, `${baseVariant} ${statusBorderColors.get(CollectionStatus.CANCELLED)}`],
+  [CollectionStatus.BLOCKED, `${baseVariant} ${statusBorderColors.get(CollectionStatus.BLOCKED)}`],
 ]);
 
 export type GetCollectionsParams = {
