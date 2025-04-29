@@ -524,7 +524,7 @@
 							</div>
 						</div>
 						<div class="flex gap-2">
-							{#if requester && requester.role === 2}
+							{#if requester && requester.role === 2 && collection.status != CollectionStatus.BLOCKED}
 								<Button
 									on:click={() => {
 										openWithdrawDialog = true;
@@ -532,10 +532,12 @@
 								>
 								<Button variant="destructive" on:click={cancelCollection}>Cancel collection</Button>
 							{/if}
-							{#if isAdmin || (requester && requester.role === 2)}
+							{#if (isAdmin || (requester && requester.role === 2)) && collection.status != CollectionStatus.BLOCKED}
 								<Button variant="outline" on:click={startEditing}>Edit</Button>
 							{/if}
-							<Button variant="outline" on:click={generateReport}>Report</Button>
+							{#if collection.status != CollectionStatus.BLOCKED}
+								<Button variant="outline" on:click={generateReport}>Report</Button>
+							{/if}
 							{#if isAdmin}
 								<Button
 									variant={`${collection.status != CollectionStatus.BLOCKED ? 'destructive' : 'default'}`}
@@ -660,7 +662,9 @@
 			<div class="rounded-lg bg-white p-6 shadow-md">
 				<div class="mb-4 flex items-center justify-between">
 					<h3 class="text-xl font-bold">Documents</h3>
-					<Button variant="outline" on:click={showAddDocumentDialog}>Add Document</Button>
+					{#if collection.status != CollectionStatus.BLOCKED}
+						<Button variant="outline" on:click={showAddDocumentDialog}>Add Document</Button>
+					{/if}
 				</div>
 
 				{#if documents && documents.length > 0}
