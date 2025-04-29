@@ -19,7 +19,7 @@
 	import { onMount } from 'svelte';
 	import type { BankAccount, BankAccountOperation } from '$lib/models/bank_account';
 	import { getBankAccountOperations, getUserBankAccount } from '$lib/api/bank_account';
-	import ExternalMoneyOperation from './ExternalMoneyOperation.svelte';
+	import ExternalMoneyOperation from '$lib/components/custom/ExternalMoneyOperation.svelte';
 
 	let identity: Identity = {
 		username: '',
@@ -113,19 +113,19 @@
 		<Tabs.List class="grid grid-cols-3">
 			<Tabs.Trigger
 				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
-				value="identity">Identity
-			</Tabs.Trigger
-			>
+				value="identity"
+				>Identity
+			</Tabs.Trigger>
 			<Tabs.Trigger
 				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
-				value="password">Password
-			</Tabs.Trigger
-			>
+				value="password"
+				>Password
+			</Tabs.Trigger>
 			<Tabs.Trigger
 				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
-				value="bank_account">Internal Bank Account
-			</Tabs.Trigger
-			>
+				value="bank_account"
+				>Internal Bank Account
+			</Tabs.Trigger>
 		</Tabs.List>
 		<Tabs.Content value="identity" id="tabs-content">
 			<Card.Root>
@@ -263,16 +263,16 @@
 								on:click={() => {
 									operation = 'Withdraw';
 									moneyDialogOpen = true;
-								}}>Withdraw Money
-							</Button
-							>
+								}}
+								>Withdraw Money
+							</Button>
 							<Button
 								on:click={() => {
 									operation = 'Deposit';
 									moneyDialogOpen = true;
-								}}>Deposit Money
-							</Button
-							>
+								}}
+								>Deposit Money
+							</Button>
 						</div>
 					</Card.Content>
 				</Card.Content>
@@ -286,48 +286,65 @@
 					<div class="overflow-x-auto">
 						<table class="w-full border-collapse">
 							<thead>
-							<tr class="border-b text-left text-sm font-medium text-gray-500">
-								<th class="pb-2 pr-2">Date</th>
-								<th class="pb-2 pr-2">Title</th>
-								<th class="pb-2 pr-2">Amount</th>
-								<th class="pb-2 pr-2">From</th>
-								<th class="pb-2">To</th>
-							</tr>
+								<tr class="border-b text-left text-sm font-medium text-gray-500">
+									<th class="pb-2 pr-2">Date</th>
+									<th class="pb-2 pr-2">Title</th>
+									<th class="pb-2 pr-2">Amount</th>
+									<th class="pb-2 pr-2">From</th>
+									<th class="pb-2">To</th>
+								</tr>
 							</thead>
 							<tbody>
-							{#each bankAccountOperations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as operation}
-								<tr class="border-b text-sm">
-									<td class="py-2 pr-2">{new Date(operation.operation_date).toLocaleDateString()}</td>
-									<td class="py-2 pr-2">{operation.title}</td>
-									<td class="py-2 pr-2 font-mono {operation.destination_account_id === bankAccount.id ? 'text-green-600' : 'text-red-600'}">
-										{operation.destination_account_id === bankAccount.id ? '+' : '-'}
-										{operation.amount.toLocaleString(undefined, {
-											style: 'currency',
-											currency: 'PLN'
-										})}
-									</td>
-									<td class="py-2 pr-2">{operation.source_account_id === null ? 'EXTERNAL' : operation.source_account_id}</td>
-									<td class="py-2">{operation.destination_account_id === null ? 'EXTERNAL' : operation.destination_account_id}</td>
-								</tr>
-							{:else}
-								<tr>
-									<td colspan="5" class="py-4 text-center text-gray-500">No operations found</td>
-								</tr>
-							{/each}
+								{#each bankAccountOperations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as operation}
+									<tr class="border-b text-sm">
+										<td class="py-2 pr-2"
+											>{new Date(operation.operation_date).toLocaleDateString()}</td
+										>
+										<td class="py-2 pr-2">{operation.title}</td>
+										<td
+											class="py-2 pr-2 font-mono {operation.destination_account_id ===
+											bankAccount.id
+												? 'text-green-600'
+												: 'text-red-600'}"
+										>
+											{operation.destination_account_id === bankAccount.id ? '+' : '-'}
+											{operation.amount.toLocaleString(undefined, {
+												style: 'currency',
+												currency: 'PLN'
+											})}
+										</td>
+										<td class="py-2 pr-2"
+											>{operation.source_account_id === null
+												? 'EXTERNAL'
+												: operation.source_account_id}</td
+										>
+										<td class="py-2"
+											>{operation.destination_account_id === null
+												? 'EXTERNAL'
+												: operation.destination_account_id}</td
+										>
+									</tr>
+								{:else}
+									<tr>
+										<td colspan="5" class="py-4 text-center text-gray-500">No operations found</td>
+									</tr>
+								{/each}
 							</tbody>
 						</table>
 					</div>
 
 					<div class="mt-4 flex items-center justify-between">
 						<div class="text-sm text-gray-500">
-							Showing {bankAccountOperations.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to {Math.min(currentPage * itemsPerPage, bankAccountOperations.length)} of {bankAccountOperations.length} entries
+							Showing {bankAccountOperations.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to
+							{Math.min(currentPage * itemsPerPage, bankAccountOperations.length)} of {bankAccountOperations.length}
+							entries
 						</div>
 						<div class="flex space-x-1">
 							<Button
 								variant="outline"
 								size="sm"
 								disabled={currentPage === 1}
-								on:click={() => currentPage = Math.max(1, currentPage - 1)}
+								on:click={() => (currentPage = Math.max(1, currentPage - 1))}
 							>
 								Previous
 							</Button>
@@ -335,7 +352,11 @@
 								variant="outline"
 								size="sm"
 								disabled={currentPage >= Math.ceil(bankAccountOperations.length / itemsPerPage)}
-								on:click={() => currentPage = Math.min(Math.ceil(bankAccountOperations.length / itemsPerPage), currentPage + 1)}
+								on:click={() =>
+									(currentPage = Math.min(
+										Math.ceil(bankAccountOperations.length / itemsPerPage),
+										currentPage + 1
+									))}
 							>
 								Next
 							</Button>
@@ -343,7 +364,6 @@
 					</div>
 				</Card.Content>
 			</Card.Root>
-
 		</Tabs.Content>
 	</Tabs.Root>
 	{#if error}
@@ -356,6 +376,6 @@
 	{/if}
 </div>
 
-			{#if moneyDialogOpen}
-				<ExternalMoneyOperation bind:open={moneyDialogOpen} {operation} />
-			{/if}
+{#if moneyDialogOpen}
+	<ExternalMoneyOperation bind:open={moneyDialogOpen} {operation} />
+{/if}

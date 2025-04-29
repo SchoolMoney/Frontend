@@ -23,6 +23,7 @@
 	import { Privilege } from '../../../../lib/models/auth';
 	import { api_middleware } from '$lib/api_middleware';
 	import { showToast } from '$lib/stores/toast';
+	import WithdrawMoney from './WithdrawMoney.svelte';
 
 	let collection: Collection = {
 		id: 0,
@@ -35,6 +36,7 @@
 		price: 0,
 		class_group_id: 0,
 		bank_account_id: 0,
+		withdrawn_money: 0,
 		owner_id: 0 // Unused. Set on backend!
 	};
 
@@ -46,6 +48,8 @@
 	};
 	let isAdmin = false;
 	let isCreateMode = false;
+
+	var openWithdrawDialog = false;
 
 	let isEditMode = false;
 	let originalCollection = null;
@@ -59,6 +63,8 @@
 	let fileToUpload = null;
 	let documentName = '';
 	let isUploading = false;
+
+	var numberOfChildrenPaid: number = 0;
 
 	onMount(async () => {
 		isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
@@ -82,6 +88,8 @@
 				children = data.children;
 				documents = data.documents;
 				requester = data.requester;
+
+				numberOfChildrenPaid = children.filter((child) => child.operation === 1).length;
 
 				collectionClassGroup =
 					classGroups.find((c) => c.id === collection.class_group_id) || collectionClassGroup;
@@ -215,6 +223,15 @@
 		}
 	}
 
+	async function cancelCollection() {
+		try {
+			await api_middleware.post(`/api/collection/${collection.id}/cancel`, {});
+			window.location.reload();
+		} catch (e) {
+			showToast('error', `${(e as Error).message}`);
+		}
+	}
+
 	function handleFileSelect(event) {
 		const file = event.target.files[0];
 		if (file) {
@@ -317,6 +334,8 @@
 			return 'bg-green-100';
 		} else if (child.operation === 2) {
 			return 'bg-red-100';
+		} else if (child.operation === 3) {
+			return 'bg-yellow-100';
 		}
 		return '';
 	}
@@ -493,9 +512,18 @@
 						</div>
 						<div class="flex gap-2">
 							{#if isAdmin || (requester && requester.role === 2)}
+								<Button
+									on:click={() => {
+										openWithdrawDialog = true;
+									}}>Withdraw</Button
+								>
+								<Button variant="destructive" on:click={cancelCollection}>Cancel collection</Button>
 								<Button variant="outline" on:click={startEditing}>Edit</Button>
 							{/if}
 							<Button variant="outline" on:click={generateReport}>Report</Button>
+							{#if isAdmin}
+								<Button variant="destructive">Block</Button>
+							{/if}
 						</div>
 					</div>
 
@@ -513,6 +541,14 @@
 						<div>
 							<Label>Start Date</Label>
 							<div>{formatDateToYYYYMMDD(collection.start_date)}</div>
+						</div>
+						<div>
+							<Label>Collected Money</Label>
+							<div>
+								{collection.price * numberOfChildrenPaid} PLN {collection.withdrawn_money === 0
+									? ''
+									: `(withdrawn: ${collection.withdrawn_money} PLN)`}
+							</div>
 						</div>
 						<div>
 							<Label>End Date</Label>
@@ -560,6 +596,8 @@
 												Paid
 											{:else if child.operation === 2}
 												Unsubscribed
+											{:else if child.operation === 3}
+												Refunded
 											{:else}
 												-
 											{/if}
@@ -825,3 +863,12 @@
 		</div>
 	{/if}
 </div>
+
+{#if openWithdrawDialog}
+	<WithdrawMoney
+		bind:open={openWithdrawDialog}
+		operation="Withdraw"
+		bankAccountId={collection.bank_account_id}
+		availableMoney={collection.price * numberOfChildrenPaid - collection.withdrawn_money}
+	/>
+{/if}

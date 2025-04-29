@@ -11,6 +11,7 @@ export type Collection = {
   price: number;
   class_group_id: number;
   bank_account_id: number;
+  withdrawn_money: number;
   owner_id: number;
 }
 
