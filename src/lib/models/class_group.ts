@@ -6,6 +6,7 @@ export type ClassGroup = {
 	id: number;
 	name: string;
 	description: string;
+  access_code: string | null;
 }
 
 export enum GroupRole {
