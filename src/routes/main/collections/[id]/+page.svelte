@@ -25,6 +25,7 @@
 	import { api_middleware } from '$lib/api_middleware';
 	import { showToast } from '$lib/stores/toast';
 	import WithdrawMoney from './WithdrawMoney.svelte';
+	import { getFinancialReport } from '$lib/api/report_service';
 
 	let collection: Collection = {
 		id: 0,
@@ -359,17 +360,11 @@
 
 	async function generateReport() {
 		try {
-			// Call the financial report API endpoint
-			const reportData = await api_middleware.get(`/api/report/financial/collection?collection_id=${collection.id}`);
-
-			// Store the raw report data for the modal
+			const reportData = await getFinancialReport(collection.id);
 			financialReportData = reportData;
-
-			// Show the financial report modal
 			showFinancialReport = true;
 
 			console.log('Financial report data loaded');
-
 		} catch (error) {
 			console.error('Error generating report:', error);
 			showToast('error', 'Failed to generate financial report');

@@ -18,7 +18,11 @@
 	import { Confirm } from '$lib/components/custom/confirm';
 	import { cancelCollection } from '$lib/api/collection';
 	import type { Parent } from '$lib/models/parent';
-
+	import {api_middleware} from '$lib/api_middleware';
+	import ClassReport from '../../collections/[id]/ClassReport.svelte';
+	import { showToast } from '$lib/stores/toast';
+	import { getClassFinancialReport } from '$lib/api/report_service';
+	import type { ClassFinancialReport } from '$lib/models/class_financial_report';
 
 	let classViewData: ClassView | null = null;
   let classGroupCashier: Parent;
@@ -32,6 +36,8 @@
   let selectedCollectionIdToCancel = 0;
   let showChangeClassGroupCashier = false;
   let selectedParentIdToSwitchToCashier = 0;
+	let isClassReportModalOpen = false;
+	let classReportData: ClassFinancialReport;
 
 	async function handleStatusChange(status: CollectionStatus) {
     classViewData = await getClassView(classId, status);
@@ -108,8 +114,18 @@
 		}
   }
 
-	function handleShowReport() {
-    alert('TODO');
+	async function handleShowReport() {
+		try {
+			const reportData = await getClassFinancialReport(classId);
+			classReportData = reportData;
+			isClassReportModalOpen = true;
+
+			console.log('Class financial report data loaded');
+
+		} catch (error) {
+			console.error('Error generating class report:', error);
+			showToast('error', 'Failed to generate class report')
+		}
 	}
 
   function handleChangeCashierClick() {
@@ -157,6 +173,14 @@
 				<AlertDescription>{errorMessage}</AlertDescription>
 			</Alert>
 		</div>
+	{/if}
+
+	{#if isClassReportModalOpen && classReportData}
+		<ClassReport
+			open={isClassReportModalOpen}
+			reportData={classReportData}
+			on:close={() => isClassReportModalOpen = false}
+		/>
 	{/if}
 
 	{#if isLoading}
