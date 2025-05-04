@@ -14,6 +14,7 @@
 		statusLabels,
 		statusTextColors
 	} from '$lib/models/collection';
+	import FinancialReport from './FinancialReport.svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import type { ClassGroup } from '$lib/models/class_group';
@@ -63,6 +64,9 @@
 	let fileToUpload = null;
 	let documentName = '';
 	let isUploading = false;
+
+	let showFinancialReport = false;
+	let financialReportData = null;
 
 	var numberOfChildrenPaid: number = 0;
 
@@ -353,8 +357,23 @@
 		return '';
 	}
 
-	function generateReport() {
-		// Implement report generation functionality
+	async function generateReport() {
+		try {
+			// Call the financial report API endpoint
+			const reportData = await api_middleware.get(`/api/report/financial/${collection.id}`);
+
+			// Store the raw report data for the modal
+			financialReportData = reportData;
+
+			// Show the financial report modal
+			showFinancialReport = true;
+
+			console.log('Financial report data loaded');
+
+		} catch (error) {
+			console.error('Error generating report:', error);
+			showToast('error', 'Failed to generate financial report');
+		}
 	}
 </script>
 
@@ -895,3 +914,11 @@
 		availableMoney={collection.price * numberOfChildrenPaid - collection.withdrawn_money}
 	/>
 {/if}
+
+{#if showFinancialReport && financialReportData}
+	<FinancialReport
+		bind:open={showFinancialReport}
+		reportData={financialReportData}
+	/>
+{/if}
+
