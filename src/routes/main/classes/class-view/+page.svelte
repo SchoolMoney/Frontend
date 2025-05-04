@@ -55,7 +55,6 @@
 
 			classId = parseInt(classGroupId, 10);
 			classViewData = await getClassView(classId, CollectionStatus.OPEN);
-			console.log(classViewData);
 			classGroupCashier = classViewData?.parents.find((p) => p.role === GroupRole.CASHIER) ?? {
 				name: '',
 				surname: ''
