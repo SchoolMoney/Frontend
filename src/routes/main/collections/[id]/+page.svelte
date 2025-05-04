@@ -360,7 +360,7 @@
 	async function generateReport() {
 		try {
 			// Call the financial report API endpoint
-			const reportData = await api_middleware.get(`/api/report/financial/${collection.id}`);
+			const reportData = await api_middleware.get(`/api/report/financial/collection?collection_id=${collection.id}`);
 
 			// Store the raw report data for the modal
 			financialReportData = reportData;

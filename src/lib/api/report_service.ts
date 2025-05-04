@@ -4,7 +4,7 @@ import { CollectionStatus } from "$lib/models/collection";
 
 export async function getFinancialReport(collectionId: number): Promise<FinancialReport> {
 	try {
-		return await api_middleware.get(`/api/report/financial/${collectionId}`);
+		return await api_middleware.get(`/api/report/financial/collection?collection_id=${collectionId}`);
 	} catch (error) {
 		console.error("Error fetching financial report:", error);
 		throw error;
