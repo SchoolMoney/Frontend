@@ -193,11 +193,42 @@
 				</div>
 			</div>
 
-			<!-- Financial Summary -->
 			<div class="mb-8 p-6 rounded-lg border bg-green-50">
 				<h3 class="text-xl font-semibold mb-4 text-green-600">Financial Summary</h3>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<!-- Fill in your financial summary UI here -->
+					<!-- Display financial summary data -->
+					<div>
+						<p class="font-medium">Total Children:</p>
+						<p>{reportData.financial_summary.total_children}</p>
+					</div>
+					<div>
+						<p class="font-medium">Paid Children:</p>
+						<p>{reportData.financial_summary.paid_children_count}</p>
+					</div>
+					<div>
+						<p class="font-medium">Unpaid Children:</p>
+						<p>{reportData.financial_summary.unpaid_children_count}</p>
+					</div>
+					<div>
+						<p class="font-medium">Total Expected:</p>
+						<p>{reportData.financial_summary.total_expected.toFixed(2)} PLN</p>
+					</div>
+					<div>
+						<p class="font-medium">Total Collected:</p>
+						<p>{reportData.financial_summary.total_collected.toFixed(2)} PLN</p>
+					</div>
+					<div>
+						<p class="font-medium">Outstanding Amount:</p>
+						<p>{reportData.financial_summary.outstanding_amount.toFixed(2)} PLN</p>
+					</div>
+					<div>
+						<p class="font-medium">Withdrawn Money:</p>
+						<p>{reportData.financial_summary.withdrawn_money.toFixed(2)} PLN</p>
+					</div>
+					<div>
+						<p class="font-medium">Available Balance:</p>
+						<p>{reportData.financial_summary.available_balance.toFixed(2)} PLN</p>
+					</div>
 				</div>
 			</div>
 
