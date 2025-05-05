@@ -71,22 +71,14 @@
 		classGroups = await getClasses();
 
 		const collectionId = parseInt(page.params.id, 10);
+    collection.id = collectionId;
 		isCreateMode = collectionId === 0;
 
 		if (isCreateMode) {
 			collection.class_group_id = parseInt(page.params.id, 10);
 		} else {
 			try {
-				const data = await api_middleware.get(`/api/collection/collection-view/${collectionId}`);
-				collection = data.collection;
-				collection.start_date = new Date(collection.start_date);
-				if (collection.end_date) {
-					collection.end_date = new Date(collection.end_date);
-				}
-
-				children = data.children;
-				documents = data.documents;
-				requester = data.requester;
+				await fetchData();
 
 				numberOfChildrenPaid = children.filter((child) => child.operation === 1).length;
 
@@ -97,6 +89,19 @@
 			}
 		}
 	});
+
+  async function fetchData() {
+    const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
+    collection = data.collection;
+    collection.start_date = new Date(collection.start_date);
+    if (collection.end_date) {
+      collection.end_date = new Date(collection.end_date);
+    }
+
+    children = data.children;
+    documents = data.documents;
+    requester = data.requester;
+  }
 
 	function startEditing() {
 		originalCollection = JSON.parse(JSON.stringify(collection));
@@ -124,6 +129,7 @@
 				const newCollection = await api_middleware.post('/api/collection', collection);
 				collection = newCollection;
 				goto(`/main/collections/${collection.id}`);
+				await fetchData();
 			}
 
 			if (isCreateMode) {
