@@ -79,7 +79,6 @@
 			try {
 				const data = await api_middleware.get(`/api/collection/collection-view/${collectionId}`);
 				collection = data.collection;
-				// Convert dates to Date objects
 				collection.start_date = new Date(collection.start_date);
 				if (collection.end_date) {
 					collection.end_date = new Date(collection.end_date);
