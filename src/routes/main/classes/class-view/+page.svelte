@@ -14,7 +14,7 @@
 	} from '$lib/components/ui/card';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
-	import { CircleX, Files, HandCoins, Calendar, Replace } from 'lucide-svelte';
+	import { CircleX, Files, HandCoins, Calendar, Replace, ClipboardCopy } from 'lucide-svelte';
 	import { cardVariants, CollectionStatus, statusLabels } from '$lib/models/collection';
 	import { goto } from '$app/navigation';
 	import { GroupRole, groupRoleLabels, type ClassView } from '$lib/models/class_group';
@@ -25,6 +25,7 @@
 	import { Confirm } from '$lib/components/custom/confirm';
 	import { cancelCollection } from '$lib/api/collection';
 	import type { Parent } from '$lib/models/parent';
+	import { api_middleware } from '$lib/api_middleware';
 
 	let classViewData: ClassView | null = null;
 	let classGroupCashier: Parent;
@@ -153,6 +154,22 @@
 			}, 5000);
 		}
 	}
+
+	async function rotateGroupAccessCode(classId) {
+		try {
+			await api_middleware.put(
+				`/api/class_group/${classId}/rotate_access_code`,
+				{}
+			);
+			window.location.reload();
+		} catch (error) {
+			showErrorPopup = true;
+			errorMessage = error.message || 'An error occurred while rotating access code';
+			setTimeout(() => {
+				showErrorPopup = false;
+			}, 5000);
+		}
+	}
 </script>
 
 <Confirm
@@ -178,7 +195,45 @@
 		</div>
 	{:else if classViewData}
 		<div class="mb-6 flex items-center justify-between">
-			<h1 class="text-2xl font-bold">{classViewData.class.name}{`${classViewData.class.access_code != null ? ` - access code: ${classViewData.class.access_code}` : ''}`}</h1>
+			<h1 class="text-2xl font-bold">
+				{classViewData.class.name}
+				{#if classViewData.requester?.group_role === GroupRole.CASHIER}
+					{#if classViewData.class.access_code != null}
+						- access code: {classViewData.class.access_code}
+						<button
+							class="ml-2 p-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
+							on:click={() => {
+          if (classViewData.class.access_code) {
+            navigator.clipboard.writeText(classViewData.class.access_code);
+          }
+        }}
+							title="Copy access code"
+							aria-label="Copy access code to clipboard"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+									 stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+											d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+							</svg>
+						</button>
+
+						<button
+							class="ml-2 p-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
+							on:click={async () => {
+          rotateGroupAccessCode(classViewData.class.id)
+        }}
+							title="Refresh access code"
+							aria-label="Refresh access code"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+									 stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+											d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+							</svg>
+						</button>
+					{/if}
+				{/if}
+			</h1>
 			<p class="text-muted-foreground">{classViewData.class.description}</p>
 		</div>
 
@@ -268,7 +323,8 @@
 										{#if collection.status === CollectionStatus.OPEN && (loggedUserPrivilige === Privilege.ADMIN_USER || classViewData.requester?.group_role === GroupRole.CASHIER)}
 											<Button
 												variant="destructive"
-												on:click={() => handleCancelCollection(collection.id)}>Cancel</Button
+												on:click={() => handleCancelCollection(collection.id)}>Cancel
+											</Button
 											>
 										{/if}
 										<Button on:click={() => handleDetailsCollection(collection.id)}>Details</Button>
