@@ -90,7 +90,7 @@
 	}
 
 	function goToCollection(collection_id: number): void {
-		goto(`/main/collections/${collection_id}`);
+		goto(`/main/collections/${collection_id}?class_group_id=${classId}`);
 	}
 
 	function handleCancelCollection(collection_id: number) {
