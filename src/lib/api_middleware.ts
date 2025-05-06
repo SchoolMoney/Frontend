@@ -96,13 +96,115 @@ export function useApi(baseUrl = baseApiUrl) {
 		return fetchWithAuth(endpoint, { ...options, method: 'DELETE' }, useAuth);
 	}
 
+	function createWebSocket(endpoint: string, options: {
+		onMessage?: (data: any) => void,
+		onOpen?: () => void,
+		onClose?: (event: CloseEvent) => void,
+		onError?: (event: Event) => void,
+		includeToken?: boolean,
+		autoReconnect?: boolean,
+		reconnectInterval?: number
+	} = {}) {
+		const wsBaseUrl = baseUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+		let url = endpoint.startsWith('ws') ? endpoint : `${wsBaseUrl}${endpoint}`;
+
+		// Add token as query param if requested
+		if (options.includeToken) {
+			const token = getToken();
+			const separator = url.includes('?') ? '&' : '?';
+			url = `${url}${separator}token=${token}`;
+		}
+
+		let socket: WebSocket;
+		let isReconnecting = false;
+		let reconnectAttempts = 0;
+		const maxReconnectAttempts = 5;
+		const reconnectInterval = options.reconnectInterval || 3000;
+
+		function connect() {
+			socket = new WebSocket(url);
+
+			socket.onopen = (event) => {
+				console.log(`WebSocket connected to ${url}`);
+				reconnectAttempts = 0;
+				if (options.onOpen) options.onOpen();
+			};
+
+			socket.onmessage = (event) => {
+				try {
+					const data = JSON.parse(event.data);
+					if (options.onMessage) options.onMessage(data);
+				} catch (error) {
+					console.error('Error parsing WebSocket message:', error);
+					if (options.onMessage) options.onMessage(event.data);
+				}
+			};
+
+			socket.onclose = (event) => {
+				console.log(`WebSocket closed: ${url}, code: ${event.code}, reason: ${event.reason}`);
+
+				if (options.onClose) options.onClose(event);
+
+				// Attempt to reconnect if not a normal closure and auto-reconnect is enabled
+				if (options.autoReconnect && !isReconnecting && event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
+					isReconnecting = true;
+					reconnectAttempts++;
+					console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+					setTimeout(() => {
+						connect();
+						isReconnecting = false;
+					}, reconnectInterval);
+				}
+			};
+
+			socket.onerror = (event) => {
+				console.error('WebSocket error:', event);
+				if (options.onError) options.onError(event);
+			};
+		}
+
+		// Establish initial connection
+		connect();
+
+		// Return an enhanced WebSocket with additional utilities
+		return {
+			socket: () => socket,
+
+			send: (data: any) => {
+				if (socket && socket.readyState === WebSocket.OPEN) {
+					socket.send(typeof data === 'string' ? data : JSON.stringify(data));
+					return true;
+				}
+				return false;
+			},
+
+			close: (code?: number, reason?: string) => {
+				if (socket) {
+					socket.close(code, reason);
+				}
+			},
+
+			reconnect: () => {
+				if (socket) {
+					socket.close();
+				}
+				connect();
+			},
+
+			isConnected: () => socket && socket.readyState === WebSocket.OPEN
+		};
+	}
+
 	return {
 		fetch: fetchWithAuth,
 		get,
 		post,
 		put,
 		delete: del,
+		createWebSocket
 	};
+
+
 }
 
 export const api_middleware = useApi();
