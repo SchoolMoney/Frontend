@@ -191,7 +191,7 @@ async function fetchClasses() {
                   <Input required bind:value={addChildRequest.surname} placeholder="Enter surname" />
                 </CardTitle>
                 <CardDescription class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input required type="date" bind:value={addChildRequest.birth_date} placeholder="Enter birth date" />
+                  <Input required type="date" bind:value={addChildRequest.birth_date} max={new Date().toISOString().split('T')[0]} placeholder="Enter birth date" />
                   <Input required bind:value={addChildRequest.group_access_code} placeholder="Enter group code" />
                 </CardDescription>
               </CardHeader>
@@ -220,7 +220,7 @@ async function fetchClasses() {
                     <Input required bind:value={child.surname} placeholder="Enter surname" />
                   </CardTitle>
                   <CardDescription class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input required type="date" bind:value={child.birth_date} placeholder="Enter birth date" />
+                    <Input required type="date" bind:value={child.birth_date} max={new Date().toISOString().split('T')[0]} placeholder="Enter birth date" />
 										<Input bind:value={child.group_access_code} placeholder="Enter group code" />
 										<br>Current class: {getClassName(child.group_id)}
                   </CardDescription>
