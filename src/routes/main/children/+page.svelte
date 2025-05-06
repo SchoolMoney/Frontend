@@ -29,7 +29,7 @@
     name: '',
     surname: '',
     birth_date: '',
-    group_id: 0,
+    group_access_code: '',
   };
 
   let selectedChildId = 0;
@@ -100,7 +100,7 @@ async function fetchClasses() {
       showAddingChild = false;
       await fetchUserChildren();
     } catch (error) {
-      errorMessage = error.message;
+      errorMsg = error.message;
       showError();
     }
   }
@@ -113,23 +113,23 @@ async function fetchClasses() {
       children = children.filter(c => c.id !== selectedChildIdToDelete);
       selectedChildIdToDelete = 0;
     } catch (error) {
-      errorMessage = error.message;
+      errorMsg = error.message;
       showError();
     }
   }
 
   async function handleChildSaveClick() {
     try {
-      const { name, surname, birth_date, group_id } = children.find(c => c.id === selectedChildId)!;
+      const { name, surname, birth_date, group_id, group_access_code } = children.find(c => c.id === selectedChildId)!;
       const childUpdateRequest: UpdateChild = {
-        name, surname, birth_date, group_id
+        name, surname, birth_date, group_id, group_access_code
       }
       await updateChild(selectedChildId, childUpdateRequest);
 
       selectedChildId = 0;
       await fetchUserChildren();
     } catch (error) {
-      errorMessage = error.message;
+      errorMsg = error.message;
       showError();
     }
   }
@@ -191,20 +191,8 @@ async function fetchClasses() {
                   <Input required bind:value={addChildRequest.surname} placeholder="Enter surname" />
                 </CardTitle>
                 <CardDescription class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input required type="date" bind:value={addChildRequest.birth_date} placeholder="Enter birth date" />
-                  <Select.Root
-                    onSelectedChange={(v) => {
-                      addChildRequest.group_id = v?.value ?? 0;
-                    }}>
-                    <Select.Trigger>
-                      <Select.Value placeholder="Select class group" />
-                    </Select.Trigger>
-                    <Select.Content>
-                      {#each classes as classGroup}
-                        <Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
-                      {/each}
-                    </Select.Content>
-                  </Select.Root>
+                  <Input required type="date" bind:value={addChildRequest.birth_date} max={new Date().toISOString().split('T')[0]} placeholder="Enter birth date" />
+                  <Input required bind:value={addChildRequest.group_access_code} placeholder="Enter group code" />
                 </CardDescription>
               </CardHeader>
               <CardContent class="flex justify-end gap-2">
@@ -232,27 +220,15 @@ async function fetchClasses() {
                     <Input required bind:value={child.surname} placeholder="Enter surname" />
                   </CardTitle>
                   <CardDescription class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input required type="date" bind:value={child.birth_date} placeholder="Enter birth date" />
-                    <Select.Root
-                      selected={ { value: child.group_id, label: getClassName(child.group_id) }}
-                      onSelectedChange={(v) => {
-                        child.group_id = v?.value ?? 0;
-                      }}>
-                      <Select.Trigger>
-                        <Select.Value placeholder="Select class group" />
-                      </Select.Trigger>
-                      <Select.Content>
-                        {#each classes as classGroup}
-                          <Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
-                        {/each}
-                      </Select.Content>
-                    </Select.Root>
+                    <Input required type="date" bind:value={child.birth_date} max={new Date().toISOString().split('T')[0]} placeholder="Enter birth date" />
+										<Input bind:value={child.group_access_code} placeholder="Enter group code" />
+										<br>Current class: {getClassName(child.group_id)}
                   </CardDescription>
                 </CardHeader>
               {:else}
                 <CardHeader>
                   <CardTitle>{child.name} {child.surname}</CardTitle>
-                  <CardDescription>Birth date: {child.birth_date}<br/>Child: {getClassName(child.group_id)}</CardDescription>
+                  <CardDescription>Birth date: {child.birth_date}<br/>Class: {getClassName(child.group_id)}</CardDescription>
                 </CardHeader>
               {/if}
               <CardContent class="flex justify-between">

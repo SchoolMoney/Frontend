@@ -76,23 +76,22 @@
 		classGroups = await getClasses();
 
 		const collectionId = parseInt(page.params.id, 10);
+    collection.id = collectionId;
 		isCreateMode = collectionId === 0;
 
+		const urlParams = new URLSearchParams(window.location.search);
+		const classGroupId = urlParams.get('class_group_id');
+
 		if (isCreateMode) {
-			collection.class_group_id = parseInt(page.params.id, 10);
+			collection.class_group_id = parseInt(classGroupId, 10);
+
+			if (classGroupId) {
+				collection.class_group_id = parseInt(classGroupId, 10);
+				collectionClassGroup = classGroups.find(c => c.id === collection.class_group_id) || null;
+			}
 		} else {
 			try {
-				const data = await api_middleware.get(`/api/collection/collection-view/${collectionId}`);
-				collection = data.collection;
-				// Convert dates to Date objects
-				collection.start_date = new Date(collection.start_date);
-				if (collection.end_date) {
-					collection.end_date = new Date(collection.end_date);
-				}
-
-				children = data.children;
-				documents = data.documents;
-				requester = data.requester;
+				await fetchData();
 
 				numberOfChildrenPaid = children.filter((child) => child.operation === 1).length;
 
@@ -103,6 +102,19 @@
 			}
 		}
 	});
+
+  async function fetchData() {
+    const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
+    collection = data.collection;
+    collection.start_date = new Date(collection.start_date);
+    if (collection.end_date) {
+      collection.end_date = new Date(collection.end_date);
+    }
+
+    children = data.children;
+    documents = data.documents;
+    requester = data.requester;
+  }
 
 	function startEditing() {
 		originalCollection = JSON.parse(JSON.stringify(collection));
@@ -130,6 +142,7 @@
 				const newCollection = await api_middleware.post('/api/collection', collection);
 				collection = newCollection;
 				goto(`/main/collections/${collection.id}`);
+				await fetchData();
 			}
 
 			if (isCreateMode) {
@@ -430,21 +443,15 @@
 				></Input>
 			</div>
 			<div>
-				<Label>Class group*</Label>
-				<Select.Root
-					onSelectedChange={(v) => {
-						collection.class_group_id = v?.value ?? undefined;
-					}}
-				>
-					<Select.Trigger>
-						<Select.Value placeholder="Select class group" />
-					</Select.Trigger>
-					<Select.Content>
-						{#each classGroups as classGroup}
-							<Select.Item value={classGroup.id}>{classGroup.name}</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				<Label>Class group</Label>
+				<div class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+					{#if collectionClassGroup}
+						{collectionClassGroup.name}
+					{:else}
+						No class group selected
+					{/if}
+				</div>
+				<input type="hidden" name="class_group_id" value={collection.class_group_id} />
 			</div>
 			<Button class="ms-auto" variant="default" type="submit">Save</Button>
 		</form>

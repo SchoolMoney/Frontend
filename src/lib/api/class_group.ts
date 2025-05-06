@@ -15,6 +15,7 @@ export async function getUserClassesUsingJwt() {
 export async function getClassView(class_id: number, collection_status: CollectionStatus) {
 	try {
 		return await api_middleware.get(`/api/class_group/class-view/${class_id}?collection_status=${collection_status}`);
+
 	} catch (error){
 		console.error(error);
 		throw error;
