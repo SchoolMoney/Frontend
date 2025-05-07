@@ -2,12 +2,20 @@
 	import { onMount, onDestroy, tick } from 'svelte';
 	import { getSessionData } from '$lib/api/auth';
 	import { api_middleware } from '$lib/api_middleware';
+	import {
+		wsConnection,
+		unreadCounts as globalUnreadCounts,
+		enterChatView,
+		leaveChatView,
+		setSelectedConversation,
+		latestMessage,
+		initWebSocket
+	} from '$lib/stores/websocket';
 	import type {
 		Message,
 		Conversation,
 		Parent,
-		CurrentUser,
-		WebSocketConnection
+		CurrentUser
 	} from '$lib/models/chat';
 
 	// State
@@ -19,13 +27,49 @@
 	let userId = session.user_id;
 	let isCreatingConversation = false;
 	let newConversationTitle = '';
-	let wsConnection: WebSocketConnection | null = null;
 	let allParents: Parent[] = [];
 	let currentUser: CurrentUser | null = null;
 	let selectedParticipant = '';
 	let messagesContainer: HTMLElement;
-	// Track unread counts for all conversations
+	let refreshInterval: ReturnType<typeof setInterval>;
+
 	let unreadCounts: Record<string, number> = {};
+	const unsubscribe = globalUnreadCounts.subscribe(value => {
+		unreadCounts = value;
+		conversations = [...conversations];
+	});
+
+	const unsubscribeMessages = latestMessage.subscribe(newMessage => {
+		if (!newMessage) return;
+
+		if (selectedConversation && newMessage.conversation_id === selectedConversation.id) {
+			const messageExists = messages.some(m => m.id === newMessage.id);
+			if (!messageExists) {
+				messages = [...messages, newMessage];
+				scrollToBottom();
+
+				if (newMessage.sender_id !== userId) {
+					api_middleware.post('/api/chat/messages/read', {
+						message_ids: [newMessage.id]
+					}).catch(err => console.error('Error marking message as read:', err));
+				}
+			}
+		} else if (newMessage.conversation_id) {
+			conversations = conversations.map(conv => {
+				if (conv.id === newMessage.conversation_id) {
+					return {
+						...conv,
+						last_message_at: newMessage.created_at
+					};
+				}
+				return conv;
+			});
+
+			conversations = sortConversations(conversations);
+
+			fetchUnreadCountForConversation(newMessage.conversation_id);
+		}
+	});
 
 	async function scrollToBottom() {
 		await tick();
@@ -51,6 +95,34 @@
 		});
 	}
 
+	async function fetchUnreadCountForConversation(conversationId: string) {
+		try {
+			const unreadResponse = await api_middleware.get(`/api/chat/conversations/${conversationId}/unread_count`);
+			if (unreadResponse && typeof unreadResponse === 'number') {
+				globalUnreadCounts.update(counts => {
+					const updatedCounts = { ...counts };
+					updatedCounts[conversationId] = unreadResponse;
+					return updatedCounts;
+				});
+			}
+		} catch (error) {
+			console.error(`Error fetching unread count for conversation ${conversationId}:`, error);
+		}
+	}
+
+	async function fetchAllUnreadCounts() {
+		try {
+			for (const conv of conversations) {
+				if (selectedConversation && conv.id === selectedConversation.id) {
+					continue;
+				}
+				await fetchUnreadCountForConversation(conv.id);
+			}
+		} catch (error) {
+			console.error('Error fetching unread counts:', error);
+		}
+	}
+
 	async function loadConversations() {
 		try {
 			const response = await api_middleware.get('/api/chat/conversations');
@@ -62,22 +134,9 @@
 				conversationData = response.data;
 			}
 
-			// Sort conversations by last_message_at
 			conversations = sortConversations(conversationData);
 
-			// Update unread counts from API response
-			for (const conv of conversationData) {
-				// Skip updating unread count for the selected conversation
-				if (selectedConversation && conv.id === selectedConversation.id) {
-					continue;
-				}
-
-				// Get unread count from API if available
-				const unreadResponse = await api_middleware.get(`/api/chat/conversations/${conv.id}/unread_count`);
-				if (unreadResponse && typeof unreadResponse === 'number') {
-					unreadCounts[conv.id] = unreadResponse;
-				}
-			}
+			await fetchAllUnreadCounts();
 		} catch (error) {
 			console.error('Error loading conversations:', error);
 		}
@@ -124,15 +183,18 @@
 	}
 
 	async function selectConversation(conversation: Conversation) {
-		// Immediately set unread count to 0 for this conversation
-		unreadCounts[conversation.id] = 0;
+		globalUnreadCounts.update(counts => {
+			const updatedCounts = { ...counts };
+			updatedCounts[conversation.id] = 0;
+			return updatedCounts;
+		});
+
+		setSelectedConversation(conversation.id);
 
 		selectedConversation = conversation;
 		await loadMessages(conversation.id);
 
-		// Mark all messages as read on the server
 		try {
-			// Then mark individual messages as read
 			const unreadMessageIds = messages
 				.filter(m => m.sender_id !== userId && !m.read)
 				.map(m => m.id);
@@ -142,27 +204,23 @@
 					message_ids: unreadMessageIds
 				});
 
-				// Update local message state
 				messages = messages.map(m =>
-					unreadMessageIds.includes(m.id) ? {...m, read: true} : m
+					unreadMessageIds.includes(m.id) ? { ...m, read: true } : m
 				);
 			}
-
-			// Force update the conversations list without changing the unread count
-			await loadConversations();
 		} catch (error) {
 			console.error('Error marking messages as read:', error);
 		}
 	}
 
 	function sendMessage() {
-		if (!newMessageContent.trim() || !selectedConversation || !wsConnection) {
-			console.log('Cannot send message', {
-				hasContent: !!newMessageContent.trim(),
-				hasConversation: !!selectedConversation,
-				hasConnection: !!wsConnection,
-				isConnected: wsConnection?.isConnected()
-			});
+		if (!newMessageContent.trim() || !selectedConversation) {
+			return;
+		}
+
+		const wsConn = $wsConnection;
+		if (!wsConn || !wsConn.isConnected()) {
+			console.error('WebSocket not connected');
 			return;
 		}
 
@@ -174,11 +232,9 @@
 
 		const tempId = 'temp-' + Date.now();
 
-		// Send message through the wsConnection
-		const success = wsConnection.send(messageData);
+		const success = wsConn.send(messageData);
 
 		if (success) {
-			// Optimistically add message to UI
 			const tempMessage = {
 				id: tempId,
 				conversation_id: selectedConversation.id,
@@ -193,8 +249,7 @@
 			scrollToBottom();
 		} else {
 			console.error('Failed to send message - connection not open');
-			// Try to reconnect
-			wsConnection.reconnect();
+			wsConn.reconnect();
 		}
 	}
 
@@ -204,19 +259,17 @@
 		try {
 			const participantIds = [Number(selectedParticipant)];
 
-			// Add current user
 			if (currentUser) {
 				participantIds.push(currentUser.id);
 			}
 
-			// If no title provided, use participant name
 			let title = newConversationTitle.trim();
 			if (!title) {
 				const participant = getParentById(Number(selectedParticipant));
 				if (participant) {
 					title = `${participant.first_name} ${participant.last_name}`;
 				} else {
-					title = "New Conversation";
+					title = 'New Conversation';
 				}
 			}
 
@@ -247,75 +300,31 @@
 		}
 	}
 
-	function connectWebSocket() {
-		if (!userId) return null;
-
-		wsConnection = api_middleware.createWebSocket(`/api/chat/ws/${userId}`, {
-			onOpen: () => {
-				console.log('WebSocket connected successfully');
-			},
-			onMessage: (data) => {
-				console.log('Message received:', data);
-
-				if (selectedConversation && data.conversation_id === selectedConversation.id) {
-					// Filter out temporary messages
-					messages = messages
-						.filter(m => !m.id.toString().startsWith('temp-'))
-						.concat([data]);
-
-					scrollToBottom();
-
-					// Mark as read if this is the currently viewed conversation
-					if (data.sender_id !== userId) {
-						api_middleware.post('/api/chat/messages/read', {
-							message_ids: [data.id]
-						}).catch(error => console.error('Error marking message as read:', error));
-
-						// Reset unread count for this conversation since we're viewing it
-						unreadCounts[data.conversation_id] = 0;
-					}
-
-					// Don't reload conversations for the current conversation
-					// Just update the current  conversation's last_message_at time
-					conversations = conversations.map(c =>
-						c.id === data.conversation_id
-							? {...c, last_message_at: new Date().toISOString()}
-							: c
-					);
-					conversations = sortConversations(conversations);
-				} else {
-					// For non-selected conversations, increment unread count if not from current user
-					if (data.sender_id !== userId) {
-						unreadCounts[data.conversation_id] = (unreadCounts[data.conversation_id] || 0) + 1;
-					}
-
-					// Only reload conversations if it's a message in a different conversation
-					loadConversations();
-				}
-			},
-			onClose: (event) => {
-				console.log('WebSocket disconnected:', event.code, event.reason);
-			},
-			onError: (event) => {
-				console.error('WebSocket error:', event);
-			},
-			autoReconnect: true
-		});
-
-		return wsConnection;
-	}
-
-	onMount(async () => {
-		await Promise.all([
-			loadConversations(),
+	onMount(() => {
+		enterChatView();
+		Promise.all([
 			loadParents(),
 			loadCurrentUser()
-		]);
-		wsConnection = connectWebSocket();
+		]).then(() => {
+			loadConversations();
+		});
+
+		const wsConn = $wsConnection;
+		if (!wsConn || !wsConn.isConnected()) {
+			initWebSocket();
+		}
+
+		refreshInterval = setInterval(() => {
+			fetchAllUnreadCounts();
+		}, 30000);
 	});
 
 	onDestroy(() => {
-		if (wsConnection) wsConnection.close();
+		clearInterval(refreshInterval);
+		unsubscribe();
+		unsubscribeMessages();
+		leaveChatView();
+		setSelectedConversation(null);
 	});
 </script>
 
@@ -383,7 +392,8 @@
 									{/if}
 								{/if}
 							</div>
-							<div class={`max-w-[70%] p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100'}`}>
+							<div
+								class={`max-w-[70%] p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100'}`}>
 								<div>{message.content}</div>
 								<div class="text-xs mt-1 text-right">
 									{new Date(message.created_at).toLocaleTimeString()}
