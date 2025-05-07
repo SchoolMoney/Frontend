@@ -89,8 +89,8 @@
 	// Sort conversations by last_message_at (newest first)
 	function sortConversations(convos: Conversation[]): Conversation[] {
 		return [...convos].sort((a, b) => {
-			const timeA = a.last_message_at || a.created_at;
-			const timeB = b.last_message_at || b.created_at;
+			const timeA = a.last_message_at || 0;
+			const timeB = b.last_message_at || 0;
 			return new Date(timeB).getTime() - new Date(timeA).getTime();
 		});
 	}
@@ -259,17 +259,27 @@
 		try {
 			const participantIds = [Number(selectedParticipant)];
 
+			// Add current user
 			if (currentUser) {
 				participantIds.push(currentUser.id);
 			}
 
 			let title = newConversationTitle.trim();
 			if (!title) {
-				const participant = getParentById(Number(selectedParticipant));
-				if (participant) {
-					title = `${participant.first_name} ${participant.last_name}`;
+				const selectedParent = getParentById(Number(selectedParticipant));
+
+				if (selectedParent) {
+					const currentUserAsParent = currentUser ? getParentById(currentUser.id) : null;
+
+					if (currentUserAsParent) {
+						title = `${selectedParent.first_name} ${selectedParent.last_name} - ${currentUserAsParent.first_name} ${currentUserAsParent.last_name}`;
+					} else if (currentUser) {
+						title = `${selectedParent.first_name} ${selectedParent.last_name} - ${currentUser.username}`;
+					} else {
+						title = `${selectedParent.first_name} ${selectedParent.last_name}`;
+					}
 				} else {
-					title = 'New Conversation';
+					title = "New Conversation";
 				}
 			}
 
@@ -376,10 +386,11 @@
 			</div>
 
 			<!-- Messages -->
+			<!-- Messages section -->
 			<div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container" bind:this={messagesContainer}>
 				{#each messages as message (message.id)}
 					<div class={`flex ${message.sender_id === userId ? 'justify-end' : 'justify-start'}`}>
-						<div>
+						<div class="max-w-[70%]">
 							<div class="text-xs mb-1 ml-1">
 								{#if message.sender_id === userId}
 									You
@@ -392,9 +403,8 @@
 									{/if}
 								{/if}
 							</div>
-							<div
-								class={`max-w-[70%] p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100'}`}>
-								<div>{message.content}</div>
+							<div class={`p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100'}`}>
+								<div class="break-words break-all whitespace-pre-wrap">{message.content}</div>
 								<div class="text-xs mt-1 text-right">
 									{new Date(message.created_at).toLocaleTimeString()}
 								</div>
