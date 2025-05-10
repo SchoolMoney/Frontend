@@ -11,6 +11,8 @@
 	export let operation: 'Deposit' | 'Withdraw' = 'Deposit';
 	export let bankAccountId: number;
 	export let availableMoney: number;
+	export let onComplete: (withdrawnMoney: number) => void = () => {};
+
 
 	var error = '';
 	var amount: number = 0;
@@ -38,6 +40,7 @@
 					account_number: iban
 				};
 				await api_middleware.post(url, body);
+				onComplete(amount);
 			}
 			open = false;
 		} catch (e) {

@@ -69,17 +69,16 @@
 	let showFinancialReport = false;
 	let financialReportData = null;
 
-	var numberOfChildrenPaid: number = 0;
-	var collected_money: number = 0;
 	$: numberOfChildrenPaid = children?.filter((child) => child.operation === 1).length;
-	$: collected_money = collection.price * numberOfChildrenPaid;
+	$: collectedMoney = collection.price * numberOfChildrenPaid;
+	$: withdrawnMoney = collection.withdrawn_money;
 
 	onMount(async () => {
 		isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
 		classGroups = await getClasses();
 
 		const collectionId = parseInt(page.params.id, 10);
-    collection.id = collectionId;
+		collection.id = collectionId;
 		isCreateMode = collectionId === 0;
 
 		const urlParams = new URLSearchParams(window.location.search);
@@ -90,7 +89,7 @@
 
 			if (classGroupId) {
 				collection.class_group_id = parseInt(classGroupId, 10);
-				collectionClassGroup = classGroups.find(c => c.id === collection.class_group_id) || null;
+				collectionClassGroup = classGroups.find((c) => c.id === collection.class_group_id) || null;
 			}
 		} else {
 			try {
@@ -106,18 +105,18 @@
 		}
 	});
 
-  async function fetchData() {
-    const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
-    collection = data.collection;
-    collection.start_date = new Date(collection.start_date);
-    if (collection.end_date) {
-      collection.end_date = new Date(collection.end_date);
-    }
+	async function fetchData() {
+		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
+		collection = data.collection;
+		collection.start_date = new Date(collection.start_date);
+		if (collection.end_date) {
+			collection.end_date = new Date(collection.end_date);
+		}
 
-    children = data.children;
-    documents = data.documents;
-    requester = data.requester;
-  }
+		children = data.children;
+		documents = data.documents;
+		requester = data.requester;
+	}
 
 	function startEditing() {
 		originalCollection = JSON.parse(JSON.stringify(collection));
@@ -448,7 +447,9 @@
 			</div>
 			<div>
 				<Label>Class group</Label>
-				<div class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+				<div
+					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+				>
 					{#if collectionClassGroup}
 						{collectionClassGroup.name}
 					{:else}
@@ -591,9 +592,9 @@
 						<div>
 							<Label>Collected Money</Label>
 							<div>
-								{collected_money} PLN {collection.withdrawn_money === 0
+								{collectedMoney} PLN {withdrawnMoney === 0
 									? ''
-									: `(withdrawn: ${collection.withdrawn_money} PLN)`}
+									: `(withdrawn: ${withdrawnMoney} PLN)`}
 							</div>
 						</div>
 						<div>
@@ -917,14 +918,13 @@
 		bind:open={openWithdrawDialog}
 		operation="Withdraw"
 		bankAccountId={collection.bank_account_id}
-		availableMoney={collection.price * numberOfChildrenPaid - collection.withdrawn_money}
+		availableMoney={collectedMoney - collection.withdrawn_money}
+		onComplete={(val: number) => {
+			withdrawnMoney = Number(withdrawnMoney) + Number(val);
+		}}
 	/>
 {/if}
 
 {#if showFinancialReport && financialReportData}
-	<FinancialReport
-		bind:open={showFinancialReport}
-		reportData={financialReportData}
-	/>
+	<FinancialReport bind:open={showFinancialReport} reportData={financialReportData} />
 {/if}
-
