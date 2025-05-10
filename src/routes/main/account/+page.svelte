@@ -367,6 +367,9 @@
 		{operation}
 		onComplete={(val) => {
 			newBalance = val;
+			getBankAccountOperations(bankAccount.id).then((operations) => {
+				bankAccountOperations = operations;
+			});
 		}}
 	/>
 {/if}
