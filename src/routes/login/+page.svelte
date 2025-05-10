@@ -8,7 +8,7 @@
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
 	import { register, login } from '$lib/api/auth';
 	import { goto } from '$app/navigation';
-  import { appName } from '../../config';
+	import { appName } from '../../config';
 	import type { AddParent } from '$lib/models/parent';
 	import { addParent } from '../../lib/api/parent';
 
@@ -17,14 +17,14 @@
 	let username = '';
 	let password = '';
 	let confirmPassword = '';
-  const addParentRequest: AddParent = {
-    name: '',
-    surname: '',
-    phone: '',
-    city: '',
-    street: '',
-    house_number: '',
-  };
+	const addParentRequest: AddParent = {
+		name: '',
+		surname: '',
+		phone: '',
+		city: '',
+		street: '',
+		house_number: ''
+	};
 
 	let error = '';
 
@@ -48,20 +48,20 @@
 			return;
 		}
 
-    if (password.length < 12) {
-      error = 'Weak Password. Minimum 12 chars required!'
-      return;
-    }
+		if (password.length < 12) {
+			error = 'Weak Password. Minimum 12 chars required!';
+			return;
+		}
 
-    if (isFinite(addParentRequest.phone) === false) {
-      error = 'Invalid phone number'
-      return;
-    }
+		if (isFinite(addParentRequest.phone) === false) {
+			error = 'Invalid phone number';
+			return;
+		}
 
 		try {
 			await register(username, password);
 			await handleLogin();
-      await addParent(addParentRequest);
+			await addParent(addParentRequest);
 		} catch (e) {
 			error = (e as Error).message;
 		}
@@ -75,8 +75,10 @@
 			<!-- Add margin-bottom to create space for the Alert -->
 			<Tabs.Root bind:value={selectedTab}>
 				<Tabs.List class="grid w-full grid-cols-2">
-					<Tabs.Trigger class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background" value="login">Login</Tabs.Trigger>
-					<Tabs.Trigger class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background" value="register">Register</Tabs.Trigger>
+					<Tabs.Trigger class="data-[state=active]:bg-primary" value="login">Login</Tabs.Trigger>
+					<Tabs.Trigger class="data-[state=active]:bg-primary" value="register"
+						>Register</Tabs.Trigger
+					>
 				</Tabs.List>
 				<Tabs.Content value="login" id="tabs-content">
 					<Card.Root>
@@ -88,13 +90,18 @@
 							<Card.Content class="space-y-2">
 								<div class="space-y-1">
 									<Label for="username">Username</Label>
-									<Input required id="username" bind:value={username} placeholder="Enter username" />
+									<Input
+										required
+										id="username"
+										bind:value={username}
+										placeholder="Enter username"
+									/>
 								</div>
 								<div class="space-y-1">
 									<Label for="password">Password</Label>
 									<Input
 										id="password"
-                    required
+										required
 										type="password"
 										bind:value={password}
 										placeholder="Enter password"
@@ -117,13 +124,18 @@
 							<Card.Content class="grid gap-2">
 								<div>
 									<Label for="register-username">Username</Label>
-									<Input id="register-username" required bind:value={username} placeholder="Enter username" />
+									<Input
+										id="register-username"
+										required
+										bind:value={username}
+										placeholder="Enter username"
+									/>
 								</div>
 								<div>
 									<Label for="register-password">Password</Label>
 									<Input
 										id="register-password"
-                    required
+										required
 										bind:value={password}
 										type="password"
 										placeholder="Enter password"
@@ -133,7 +145,7 @@
 									<Label for="confirm-password">Confirm password</Label>
 									<Input
 										id="confirm-password"
-                    required
+										required
 										bind:value={confirmPassword}
 										type="password"
 										placeholder="Confirm password"
@@ -143,7 +155,7 @@
 									<Label for="name">Name</Label>
 									<Input
 										id="name"
-                    required
+										required
 										bind:value={addParentRequest.name}
 										placeholder="Enter name"
 									/>
@@ -152,7 +164,7 @@
 									<Label for="surname">Surname</Label>
 									<Input
 										id="surname"
-                    required
+										required
 										bind:value={addParentRequest.surname}
 										placeholder="Enter surname"
 									/>
@@ -161,8 +173,8 @@
 									<Label for="phone">Phone</Label>
 									<Input
 										id="phone"
-                    required
-                    type="tel"
+										required
+										type="tel"
 										bind:value={addParentRequest.phone}
 										placeholder="Enter phone"
 									/>
@@ -171,7 +183,7 @@
 									<Label for="city">City</Label>
 									<Input
 										id="city"
-                    required
+										required
 										bind:value={addParentRequest.city}
 										placeholder="Enter city"
 									/>
@@ -180,7 +192,7 @@
 									<Label for="street">Street</Label>
 									<Input
 										id="street"
-                    required
+										required
 										bind:value={addParentRequest.street}
 										placeholder="Enter street"
 									/>
@@ -189,7 +201,7 @@
 									<Label for="house_number">House number</Label>
 									<Input
 										id="house_number"
-                    required
+										required
 										bind:value={addParentRequest.house_number}
 										placeholder="Enter house number"
 									/>

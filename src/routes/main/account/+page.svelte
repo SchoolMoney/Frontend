@@ -111,21 +111,11 @@
 <div class="flex min-h-dvh flex-col items-center justify-center">
 	<Tabs.Root bind:value={selectedTab} class="size-[500px]">
 		<Tabs.List class="grid grid-cols-3">
-			<Tabs.Trigger
-				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
-				value="identity"
-				>Identity
-			</Tabs.Trigger>
-			<Tabs.Trigger
-				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
-				value="password"
-				>Password
-			</Tabs.Trigger>
-			<Tabs.Trigger
-				class="data-[state=active]:bg-primary data-[state=active]:!bg-opacity-50 data-[state=active]:text-background"
-				value="bank_account"
-				>Internal Bank Account
-			</Tabs.Trigger>
+			<Tabs.Trigger class="data-[state=active]:bg-primary" value="identity">Identity</Tabs.Trigger>
+			<Tabs.Trigger class="data-[state=active]:bg-primary" value="password">Password</Tabs.Trigger>
+			<Tabs.Trigger class="data-[state=active]:bg-primary" value="bank_account"
+				>Internal Bank Account</Tabs.Trigger
+			>
 		</Tabs.List>
 		<Tabs.Content value="identity" id="tabs-content">
 			<Card.Root>
@@ -243,13 +233,13 @@
 					<Card.Content>
 						<div class="space-y-4">
 							<div class="flex flex-col">
-								<span class="text-sm font-semibold text-gray-500">IBAN Number</span>
-								<span class="font-mono text-lg text-gray-800">{bankAccount.account_number}</span>
+								<span class="text-sm font-semibold text-gray-300">IBAN Number</span>
+								<span class="font-mono text-lg text-gray-400">{bankAccount.account_number}</span>
 							</div>
 
 							<div class="flex flex-col">
-								<span class="text-sm font-semibold text-gray-500">Available Money</span>
-								<span class="font-mono text-lg text-gray-800">
+								<span class="text-sm font-semibold text-gray-300">Available Money</span>
+								<span class="font-mono text-lg text-gray-400">
 									{bankAccount.balance?.toLocaleString(undefined, {
 										style: 'currency',
 										currency: 'PLN'
