@@ -9,6 +9,7 @@
 
 	export let open = false;
 	export let operation: 'Deposit' | 'Withdraw' = 'Deposit';
+	export let onComplete: (newBalance: number) => void = () => {};
 
 	var error = '';
 	var amount: number = 0;
@@ -29,14 +30,20 @@
 				const body = {
 					amount: amount
 				};
-				await api_middleware.post(url, body);
+				const data = await api_middleware.post(url, body);
+				if (data) {
+					onComplete(data.balance);
+				}
 			} else {
 				const url = '/api/bank_account/user/withdraw';
 				const body = {
 					amount: amount,
 					account_number: iban
 				};
-				await api_middleware.post(url, body);
+				const data = await api_middleware.post(url, body);
+				if (data) {
+					onComplete(data.balance);
+				}
 			}
 			open = false;
 		} catch (e) {

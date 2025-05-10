@@ -96,16 +96,11 @@
 			console.error(error);
 		}
 	}
-
-	// $: if (!moneyDialogOpen) {
-	// 	(async () => {
-	// 		await getUserBankAccount().then((updatedAccount) => {
-	// 			if (updatedAccount) {
-	// 				bankAccount = updatedAccount;
-	// 			}
-	// 		});
-	// 	})();
-	// }
+	var newBalance: number | null = null;
+	$: if (newBalance !== null) {
+		bankAccount = { ...bankAccount, balance: newBalance };
+		newBalance = null; // reset so it doesn't run again
+	}
 </script>
 
 <div class="flex min-h-dvh flex-col items-center justify-center">
@@ -367,5 +362,11 @@
 </div>
 
 {#if moneyDialogOpen}
-	<ExternalMoneyOperation bind:open={moneyDialogOpen} {operation} />
+	<ExternalMoneyOperation
+		bind:open={moneyDialogOpen}
+		{operation}
+		onComplete={(val) => {
+			newBalance = val;
+		}}
+	/>
 {/if}
