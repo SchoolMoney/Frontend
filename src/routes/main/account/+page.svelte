@@ -104,7 +104,7 @@
 </script>
 
 <div class="flex min-h-dvh flex-col items-center justify-center">
-	<Tabs.Root bind:value={selectedTab} class="size-[500px]">
+	<Tabs.Root bind:value={selectedTab} class="w-full max-w-screen-xl">
 		<Tabs.List class="grid grid-cols-3">
 			<Tabs.Trigger class="data-[state=active]:bg-primary" value="identity">Identity</Tabs.Trigger>
 			<Tabs.Trigger class="data-[state=active]:bg-primary" value="password">Password</Tabs.Trigger>
@@ -285,7 +285,7 @@
 										<td class="py-2 pr-2"
 											>{new Date(operation.operation_date).toLocaleDateString()}</td
 										>
-										<td class="py-2 pr-2">{operation.title}</td>
+										<td class="py-2 pr-2">{operation.description}</td>
 										<td
 											class="py-2 pr-2 font-mono {operation.destination_account_id ===
 											bankAccount.id
@@ -367,6 +367,9 @@
 		{operation}
 		onComplete={(val) => {
 			newBalance = val;
+			getBankAccountOperations(bankAccount.id).then((operations) => {
+				bankAccountOperations = operations;
+			});
 		}}
 	/>
 {/if}
