@@ -70,6 +70,9 @@
 	let financialReportData = null;
 
 	var numberOfChildrenPaid: number = 0;
+	var collected_money: number = 0;
+	$: numberOfChildrenPaid = children?.filter((child) => child.operation === 1).length;
+	$: collected_money = collection.price * numberOfChildrenPaid;
 
 	onMount(async () => {
 		isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
@@ -164,6 +167,7 @@
 		}
 		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
 		children = data.children;
+		collection = data.collection;
 	}
 
 	async function unsubscribeChild(childId: number) {
@@ -587,7 +591,7 @@
 						<div>
 							<Label>Collected Money</Label>
 							<div>
-								{collection.price * numberOfChildrenPaid} PLN {collection.withdrawn_money === 0
+								{collected_money} PLN {collection.withdrawn_money === 0
 									? ''
 									: `(withdrawn: ${collection.withdrawn_money} PLN)`}
 							</div>
