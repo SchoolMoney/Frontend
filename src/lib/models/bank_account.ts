@@ -13,4 +13,6 @@ export type BankAccountOperation = {
   description: string;
   source_account_id?: number;
   destination_account_id?: number;
+  source_iban?: string;
+  destination_iban?: string;
 }

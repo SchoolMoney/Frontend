@@ -301,12 +301,12 @@
 										<td class="py-2 pr-2"
 											>{operation.source_account_id === null
 												? 'EXTERNAL'
-												: operation.source_account_id}</td
+												: operation.source_iban}</td
 										>
 										<td class="py-2"
 											>{operation.destination_account_id === null
 												? 'EXTERNAL'
-												: operation.destination_account_id}</td
+												: operation.destination_iban}</td
 										>
 									</tr>
 								{:else}
