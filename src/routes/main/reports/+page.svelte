@@ -7,6 +7,7 @@
 	import ClassReport from '../collections/[id]/ClassReport.svelte';
 	import FinancialReport from '../collections/[id]/FinancialReport.svelte';
 	import type { ClassFinancialReport } from '$lib/models/class_financial_report';
+	import * as Select from '$lib/components/ui/select';
 
 	// Define proper types for our variables
 	interface Collection {
@@ -122,16 +123,19 @@
 		<h2 class="text-xl font-semibold mb-4">Collection Financial Reports</h2>
 		<div class="mb-4">
 			<label for="collection-select" class="block text-sm font-medium mb-1">Select Collection</label>
-			<select
-				id="collection-select"
-				class="w-full p-2 border rounded-md"
-				bind:value={selectedCollectionId}
-			>
-				<option value={null}>Select a collection...</option>
-				{#each collections as collection (collection.id)}
-					<option value={collection.id}>{collection.name}</option>
-				{/each}
-			</select>
+      <Select.Root
+        onSelectedChange={(v) => {
+          selectedCollectionId = v?.value ?? 0;
+        }}>
+        <Select.Trigger>
+          <Select.Value placeholder="Select collection" />
+        </Select.Trigger>
+        <Select.Content>
+          {#each collections as collection}
+            <Select.Item value={collection.id}>{collection.name}</Select.Item>
+          {/each}
+        </Select.Content>
+      </Select.Root>
 		</div>
 		<button
 			on:click={generateCollectionReport}
@@ -142,21 +146,23 @@
 		</button>
 	</div>
 
-	<!-- Class reports section - available to all users but with filtered data -->
 	<div class="p-4 border rounded-md">
 		<h2 class="text-xl font-semibold mb-4">Class Financial Reports</h2>
 		<div class="mb-4">
-			<label for="class-select" class="block text-sm font-medium mb-1">Select Class</label>
-			<select
-				id="class-select"
-				class="w-full p-2 border rounded-md"
-				bind:value={selectedClassId}
-			>
-				<option value={null}>Select a class...</option>
-				{#each classes as classItem (classItem.id)}
-					<option value={classItem.id}>{classItem.name}</option>
-				{/each}
-			</select>
+			<label for="collection-select" class="block text-sm font-medium mb-1">Select Class</label>
+      <Select.Root
+        onSelectedChange={(v) => {
+          selectedClassId = v?.value ?? 0;
+        }}>
+        <Select.Trigger>
+          <Select.Value placeholder="Select class" />
+        </Select.Trigger>
+        <Select.Content>
+          {#each classes as classItem}
+            <Select.Item value={classItem.id}>{classItem.name}</Select.Item>
+          {/each}
+        </Select.Content>
+      </Select.Root>
 		</div>
 		<button
 			on:click={generateClassReport}

@@ -17,6 +17,9 @@
 		Parent,
 		CurrentUser
 	} from '$lib/models/chat';
+	import { Label } from '$lib/components/ui/label';
+	import { Input } from '$lib/components/ui/input';
+	import * as Select from '$lib/components/ui/select';
 
 	// State
 	let conversations: Conversation[] = [];
@@ -338,7 +341,7 @@
 	});
 </script>
 
-<div class="flex h-[calc(100vh-64px)] bg-white">
+<div class="flex h-[calc(100vh-64px)] bg-muted/50">
 	<!-- Conversations sidebar -->
 	<div class="w-1/3 border-r h-full flex flex-col">
 		<div class="p-4 border-b flex justify-between items-center">
@@ -354,7 +357,7 @@
 		<div class="overflow-y-auto flex-1">
 			{#each conversations as conversation (conversation.id)}
 				<div
-					class="p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors {selectedConversation?.id === conversation.id ? 'bg-gray-100' : ''}"
+					class="p-4 border-b cursor-pointer hover:bg-gray-800 transition-colors {selectedConversation?.id === conversation.id ? 'border border-primary bg-gray-800' : ''}"
 					on:click={() => selectConversation(conversation)}
 				>
 					<div class="flex justify-between items-center">
@@ -421,12 +424,11 @@
 			<!-- Message input -->
 			<div class="p-4 border-t">
 				<form on:submit|preventDefault={sendMessage} class="flex gap-2">
-					<input
-						type="text"
-						bind:value={newMessageContent}
-						placeholder="Type a message..."
-						class="flex-1 p-2 border rounded-md"
-					/>
+          <Input
+            required
+            bind:value={newMessageContent}
+            placeholder="Type a message..."
+          />
 					<button
 						type="submit"
 						class="px-4 py-2 bg-primary text-white rounded-md disabled:opacity-50"
@@ -447,33 +449,39 @@
 <!-- New conversation modal -->
 {#if isCreatingConversation}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-		<div class="bg-white p-6 rounded-lg w-full max-w-md">
+		<div class="bg-muted/50 p-6 rounded-lg w-full max-w-md">
 			<h3 class="text-xl font-semibold mb-4">New Conversation</h3>
 
 			<form on:submit|preventDefault={createConversation} class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-1">Title</label>
-					<input type="text" bind:value={newConversationTitle} class="w-full p-2 border rounded-md" />
+          <Label for="title">Title</Label>
+          <Input
+            required
+            id="title"
+            bind:value={newConversationTitle}
+            placeholder="Enter conservation title"
+          />
 					<p class="text-xs text-gray-500 mt-1">
 						If no title is provided, participant name will be used
 					</p>
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium mb-1">
-						Select Participant*
-					</label>
-					<select
-						class="w-full p-2 border rounded-md"
-						bind:value={selectedParticipant}
-					>
-						<option value="">-- Select a participant --</option>
-						{#each allParents.filter(parent =>
+          <Select.Root
+            onSelectedChange={(v) => {
+              selectedParticipant = v?.value ?? 0;
+            }}>
+            <Select.Trigger>
+              <Select.Value placeholder="Select class" />
+            </Select.Trigger>
+            <Select.Content>
+              {#each allParents.filter(parent =>
 							parent.id !== currentUser?.id
 						) as parent (parent.id)}
-							<option value={parent.id}>{parent.first_name} {parent.last_name}</option>
-						{/each}
-					</select>
+                <Select.Item value={parent.id}>{parent.first_name} {parent.last_name}</Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
 					<p class="text-xs text-gray-500 mt-1">
 						{#if currentUser}Your user will be added automatically.{/if}
 					</p>

@@ -129,9 +129,6 @@
 			const reportData = await getClassFinancialReport(classId);
 			classReportData = reportData;
 			isClassReportModalOpen = true;
-
-			console.log('Class financial report data loaded');
-
 		} catch (error) {
 			console.error('Error generating class report:', error);
 			showToast('error', 'Failed to generate class report')
@@ -226,7 +223,7 @@
 					{#if classViewData.class.access_code != null}
 						- access code: {classViewData.class.access_code}
 						<button
-							class="ml-2 p-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
+							class="ml-2 p-1 text-sm rounded bg-secondary"
 							on:click={() => {
           if (classViewData.class.access_code) {
             navigator.clipboard.writeText(classViewData.class.access_code);
@@ -243,7 +240,7 @@
 						</button>
 
 						<button
-							class="ml-2 p-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
+							class="ml-2 p-1 text-sm bg-secondary rounded"
 							on:click={async () => {
           rotateGroupAccessCode(classViewData.class.id)
         }}

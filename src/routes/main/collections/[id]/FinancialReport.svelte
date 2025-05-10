@@ -155,8 +155,8 @@
 	}
 </script>
 
-<div class={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 ${open ? 'block' : 'hidden'}`}>
-	<div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6 shadow-lg">
+<div class={`fixed inset-0 flex items-center justify-center ${open ? 'block' : 'hidden'}`}>
+	<div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg bg-gray-900 p-6 shadow-lg">
 		<!-- Header with close button -->
 		<div class="flex items-center justify-between mb-6">
 			<h2 class="text-2xl font-bold">Financial Report</h2>
@@ -168,7 +168,7 @@
 
 		{#if reportData}
 			<!-- Collection Info -->
-			<div class="mb-8 p-6 rounded-lg border bg-gray-50">
+			<div class="mb-8 p-6 rounded-lg border border-gray-500">
 				<h3 class="text-xl font-semibold mb-4 text-blue-600">Collection Information</h3>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
@@ -193,7 +193,7 @@
 				</div>
 			</div>
 
-			<div class="mb-8 p-6 rounded-lg border bg-green-50">
+			<div class="mb-8 p-6 rounded-lg border border-gray-500">
 				<h3 class="text-xl font-semibold mb-4 text-green-600">Financial Summary</h3>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<!-- Display financial summary data -->
@@ -235,7 +235,7 @@
 			<!-- Children Lists -->
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 				<!-- Paid Children -->
-				<div class="p-6 rounded-lg border bg-teal-50">
+				<div class="p-6 rounded-lg border border-gray-500">
 					<h3 class="text-xl font-semibold mb-4 text-teal-600">Paid Children ({reportData.paid_children.length})</h3>
 					{#if reportData.paid_children.length > 0}
 						<ul class="space-y-2">
@@ -251,7 +251,7 @@
 				</div>
 
 				<!-- Unpaid Children -->
-				<div class="p-6 rounded-lg border bg-red-50">
+				<div class="p-6 rounded-lg border border-gray-500">
 					<h3 class="text-xl font-semibold mb-4 text-red-600">Unpaid Children ({reportData.unpaid_children.length})</h3>
 					{#if reportData.unpaid_children.length > 0}
 						<ul class="space-y-2">

@@ -120,8 +120,8 @@
 	}
 </script>
 
-<div class={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 ${open ? 'block' : 'hidden'}`}>
-	<div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6 shadow-lg">
+<div class={`fixed inset-0 flex items-center justify-center ${open ? 'block' : 'hidden'}`}>
+	<div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg p-6 shadow-lg bg-gray-900">
 		<!-- Header with close button -->
 		<div class="flex items-center justify-between mb-6">
 			<h2 class="text-2xl font-bold">Class Financial Report</h2>
@@ -133,7 +133,7 @@
 
 		{#if reportData}
 			<!-- Class Info -->
-			<div class="mb-8 p-6 rounded-lg border bg-gray-50">
+			<div class="mb-8 p-6 rounded-lg border border-gray-500">
 				<h3 class="text-xl font-semibold mb-4 text-blue-600">Class Information</h3>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
@@ -148,7 +148,7 @@
 			</div>
 
 			<!-- Financial Summary -->
-			<div class="mb-8 p-6 rounded-lg border bg-green-50">
+			<div class="mb-8 p-6 rounded-lg border border-gray-500">
 				<h3 class="text-xl font-semibold mb-4 text-green-600">Financial Summary</h3>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
@@ -179,12 +179,12 @@
 			</div>
 
 			<!-- Collections List -->
-			<div class="mb-8 p-6 rounded-lg border bg-teal-50">
+			<div class="mb-8 p-6 rounded-lg border border-gray-500">
 				<h3 class="text-xl font-semibold mb-4 text-teal-600">Collections ({reportData.collections.length})</h3>
 				{#if reportData.collections.length > 0}
 					<div class="overflow-x-auto">
 						<table class="w-full text-sm text-left">
-							<thead class="text-xs uppercase bg-teal-100">
+							<thead class="text-xs uppercase bg-teal-100 bg-opacity-10">
 							<tr>
 								<th class="px-4 py-2">ID</th>
 								<th class="px-4 py-2">Name</th>
@@ -197,7 +197,7 @@
 							</thead>
 							<tbody>
 							{#each reportData.collections as collection (collection.id)}
-								<tr class="border-b hover:bg-teal-50">
+								<tr class="border-b hover:bg-teal-100 hover:bg-opacity-5">
 									<td class="px-4 py-2">{collection.id}</td>
 									<td class="px-4 py-2">{collection.name}</td>
 									<td class="px-4 py-2">
@@ -224,7 +224,6 @@
 				{/if}
 			</div>
 
-			<!-- Generated Date -->
 			<div class="mt-6 text-sm text-gray-500 text-right">
 				Report generated on: {new Date(reportData.generated_date).toLocaleDateString()}
 			</div>

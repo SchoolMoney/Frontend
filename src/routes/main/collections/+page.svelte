@@ -65,8 +65,8 @@
 <div class="min-h-dvh">
   <h2 class="text-center text-4xl w-full font-bold">Collections</h2>
   
-  <div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-    <form class="lg:col-start-1 lg:col-end-3 md:col mt-10" on:submit={handleSubmit}>
+  <div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-3 xl:grid-cols-3 mx-auto">
+    <form class="lg:col-start-2 lg:col-end-2 md:col mt-10" on:submit={handleSubmit}>
       <Card.Content class="grid gap-4 md:gap-8 lg:[repeat(3,1fr)_auto_auto] xl:grid-cols-[repeat(3,1fr)_auto_auto] lg:grid-rows-2 xl:grid-rows-2">
         <div class="lg:col-start-1 xl:col-end-2">
           <Label for="name">Name</Label>

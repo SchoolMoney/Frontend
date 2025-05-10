@@ -365,11 +365,11 @@
 
 	function getChildRowClass(child) {
 		if (child.operation === 1) {
-			return 'bg-green-100';
+			return 'bg-green-100 bg-opacity-50';
 		} else if (child.operation === 2) {
-			return 'bg-red-100';
+			return 'bg-red-100 bg-opacity-50';
 		} else if (child.operation === 3) {
-			return 'bg-yellow-100';
+			return 'bg-yellow-100 bg-opacity-50';
 		}
 		return '';
 	}
@@ -394,7 +394,7 @@
 		<h2 class="w-full text-center text-4xl font-bold">Create New Collection</h2>
 		<form
 			class={cardVariants.get(collection.status) +
-				' mx-auto mt-20 grid max-w-2xl grid-cols-1 gap-6 rounded-lg bg-white p-6 shadow-md md:grid-cols-1'}
+				' mx-auto mt-20 grid max-w-2xl grid-cols-1 gap-6 rounded-lg bg-gray-900 p-6 shadow-md md:grid-cols-1'}
 			on:submit|preventDefault={save}
 		>
 			<div>
@@ -464,7 +464,7 @@
 		<!-- Collection View/Edit Mode -->
 		<div class="mx-auto max-w-6xl p-6">
 			<!-- Collection Details Section -->
-			<div class={cardVariants.get(collection.status) + ' mb-8 rounded-lg p-6 shadow-md'}>
+			<div class={cardVariants.get(collection.status) + ' mb-8 rounded-lg p-6 shadow-md bg-muted/50'}>
 				{#if isEditMode}
 					<!-- Edit Mode Header -->
 					<form on:submit|preventDefault={save} class="space-y-4">
@@ -612,14 +612,14 @@
 			</div>
 
 			<!-- Children List Section -->
-			<div class="mb-8 rounded-lg bg-white p-6 shadow-md">
+			<div class="mb-8 rounded-lg bg-muted/50 p-6 shadow-md">
 				<h3 class="mb-4 text-xl font-bold">Children</h3>
 
 				{#if children && children.length > 0}
 					<div class="overflow-x-auto">
 						<table class="w-full border-collapse">
 							<thead>
-								<tr class="bg-gray-100">
+								<tr class="bg-gray-800">
 									<th class="border-b p-3 text-left">Name</th>
 									<th class="border-b p-3 text-left">Surname</th>
 									<th class="border-b p-3 text-left">Requester</th>
@@ -685,7 +685,7 @@
 			</div>
 
 			<!-- Documents Section -->
-			<div class="rounded-lg bg-white p-6 shadow-md">
+			<div class="rounded-lg bg-muted/50 p-6 shadow-md">
 				<div class="mb-4 flex items-center justify-between">
 					<h3 class="text-xl font-bold">Documents</h3>
 					{#if collection.status != CollectionStatus.BLOCKED}
@@ -840,7 +840,7 @@
 			<!-- Dialog wyboru pliku -->
 			{#if showDocumentDialog}
 				<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-					<div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+					<div class="w-full max-w-md rounded-lg bg-muted/50 p-6 shadow-lg">
 						<h3 class="mb-4 text-xl font-bold">Add Document</h3>
 
 						<form on:submit|preventDefault={uploadDocument} class="space-y-4">
