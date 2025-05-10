@@ -1,15 +1,13 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Button } from '$lib/components/ui/button';
-	import * as Select from '$lib/components/ui/select';
 	import { onMount } from 'svelte';
-	import { getCollectionById, createCollection, updateCollection } from '$lib/api/collection';
 	import type { Collection } from '$lib/models/collection';
 	import {
 		cardVariants,
+		collectionOperationTypeLabels,
 		CollectionStatus,
 		statusLabels,
 		statusTextColors
@@ -19,7 +17,6 @@
 	import { goto } from '$app/navigation';
 	import type { ClassGroup } from '$lib/models/class_group';
 	import { getClasses } from '$lib/api/class_group';
-	import { getBankAccountById } from '$lib/api/bank_account';
 	import { getSessionData } from '../../../../lib/api/auth';
 	import { Privilege } from '../../../../lib/models/auth';
 	import { api_middleware } from '$lib/api_middleware';
@@ -59,6 +56,7 @@
 	// Variables for collection view mode
 	let children = [];
 	let documents = [];
+	let operations = [];
 	let requester = null;
 
 	let showDocumentDialog = false;
@@ -116,6 +114,7 @@
 		children = data.children;
 		documents = data.documents;
 		requester = data.requester;
+    operations = data.operations;
 	}
 
 	function startEditing() {
@@ -388,8 +387,6 @@
 			const reportData = await getFinancialReport(collection.id);
 			financialReportData = reportData;
 			showFinancialReport = true;
-
-			console.log('Financial report data loaded');
 		} catch (error) {
 			console.error('Error generating report:', error);
 			showToast('error', 'Failed to generate financial report');
@@ -620,7 +617,6 @@
 				{/if}
 			</div>
 
-			<!-- Children List Section -->
 			<div class="mb-8 rounded-lg bg-muted/50 p-6 shadow-md">
 				<h3 class="mb-4 text-xl font-bold">Children</h3>
 
@@ -689,6 +685,37 @@
 												>
 											{/if}
 										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{:else}
+					<p>No children found.</p>
+				{/if}
+			</div>
+      
+			<div class="mb-8 rounded-lg bg-muted/50 p-6 shadow-md">
+				<h3 class="mb-4 text-xl font-bold">Operations</h3>
+
+				{#if operations?.length > 0}
+					<div class="overflow-x-auto">
+						<table class="w-full border-collapse">
+							<thead>
+								<tr class="bg-gray-800">
+									<th class="border-b p-3 text-left">Child</th>
+									<th class="border-b p-3 text-left">Requester</th>
+									<th class="border-b p-3 text-left">Operation</th>
+									<th class="border-b p-3 text-left">Operation Date</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each operations as operation}
+									<tr>
+										<td class="border-b p-3">{operation.child_name} {operation.child_surname}</td>
+										<td class="border-b p-3">{operation.requestor_name} {operation.requestor_surname}</td>
+										<td class="border-b p-3">{collectionOperationTypeLabels.get(operation.operation_type)}</td>
+										<td class="border-b p-3">{operation.operation_date || '-'}</td>
 									</tr>
 								{/each}
 							</tbody>

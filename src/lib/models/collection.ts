@@ -80,3 +80,19 @@ export type FormattedGetCollectionsParams = {
   end_date_to?: string;
   status?: CollectionStatus;
 }
+
+
+
+export enum CollectionOperationType {
+  PAY = 1, // # payment to the account of the collection
+  DISCHARGE = 2, // # discharge child from collection
+  REFUND = 3, // # payment from collection account to parent
+  WITHDRAW = 4
+};
+
+export const collectionOperationTypeLabels = new Map([
+  [CollectionOperationType.PAY, 'Pay'],
+  [CollectionOperationType.DISCHARGE, 'Discharge'],
+  [CollectionOperationType.REFUND, 'Refund'],
+  [CollectionOperationType.WITHDRAW, 'Withdraw'],
+]);
