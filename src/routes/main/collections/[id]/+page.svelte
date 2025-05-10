@@ -188,6 +188,15 @@
 		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
 		children = data.children;
 	}
+	async function refundChild(childId: number) {
+		try {
+			await api_middleware.put(`/api/collection/${collection.id}/refund/${childId}`, {});
+		} catch (e) {
+			showToast('error', `${(e as Error).message}`);
+		}
+		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
+		children = data.children;
+	}
 
 	async function showAddDocumentDialog() {
 		fileToUpload = null;
@@ -666,6 +675,12 @@
 														Unsubscribe
 													</Button>
 												</div>
+											{:else if child.operation === 1}
+												<Button
+													size="sm"
+													variant="outline"
+													on:click={() => refundChild(child.child_id)}>Refund</Button
+												>
 											{:else if child.operation === 2}
 												<Button
 													size="sm"
