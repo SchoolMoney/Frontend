@@ -280,7 +280,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								{#each bankAccountOperations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as operation}
+								{#each bankAccountOperations?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as operation}
 									<tr class="border-b text-sm">
 										<td class="py-2 pr-2"
 											>{new Date(operation.operation_date).toLocaleDateString()}</td
@@ -320,8 +320,8 @@
 
 					<div class="mt-4 flex items-center justify-between">
 						<div class="text-sm text-gray-500">
-							Showing {bankAccountOperations.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to
-							{Math.min(currentPage * itemsPerPage, bankAccountOperations.length)} of {bankAccountOperations.length}
+							Showing {bankAccountOperations?.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} to
+							{Math.min(currentPage * itemsPerPage, bankAccountOperations?.length)} of {bankAccountOperations.length}
 							entries
 						</div>
 						<div class="flex space-x-1">

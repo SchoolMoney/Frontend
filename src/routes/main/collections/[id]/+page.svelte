@@ -160,41 +160,36 @@
 	async function payForChild(childId: number) {
 		try {
 			await api_middleware.put(`/api/collection/${collection.id}/pay/${childId}`, {});
+      await fetchData();
 		} catch (e) {
 			showToast('error', `${(e as Error).message}`);
 		}
-		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
-		children = data.children;
-		collection = data.collection;
 	}
 
 	async function unsubscribeChild(childId: number) {
 		try {
 			await api_middleware.put(`/api/collection/${collection.id}/unsubscribe/${childId}`, {});
+      await fetchData();
 		} catch (e) {
 			showToast('error', `${(e as Error).message}`);
 		}
-		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
-		children = data.children;
 	}
 
 	async function restoreChild(childId: number) {
 		try {
 			await api_middleware.put(`/api/collection/${collection.id}/restore/${childId}`, {});
+      await fetchData();
 		} catch (e) {
 			showToast('error', `${(e as Error).message}`);
 		}
-		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
-		children = data.children;
 	}
 	async function refundChild(childId: number) {
 		try {
 			await api_middleware.put(`/api/collection/${collection.id}/refund/${childId}`, {});
+      await fetchData();
 		} catch (e) {
 			showToast('error', `${(e as Error).message}`);
 		}
-		const data = await api_middleware.get(`/api/collection/collection-view/${collection.id}`);
-		children = data.children;
 	}
 
 	async function showAddDocumentDialog() {
@@ -703,18 +698,31 @@
 						<table class="w-full border-collapse">
 							<thead>
 								<tr class="bg-gray-800">
-									<th class="border-b p-3 text-left">Child</th>
-									<th class="border-b p-3 text-left">Requester</th>
-									<th class="border-b p-3 text-left">Operation</th>
-									<th class="border-b p-3 text-left">Operation Date</th>
+									<th class="pb-2 pr-2">Date</th>
+									<th class="pb-2 pr-2">Title</th>
+									<th class="pb-2 pr-2">Amount</th>
+									<th class="pb-2 pr-2">From</th>
+									<th class="pb-2">To</th>
 								</tr>
 							</thead>
 							<tbody>
 								{#each operations as operation}
 									<tr>
-										<td class="border-b p-3">{operation.child_name} {operation.child_surname}</td>
-										<td class="border-b p-3">{operation.requestor_name} {operation.requestor_surname}</td>
-										<td class="border-b p-3">{collectionOperationTypeLabels.get(operation.operation_type)}</td>
+										<td class="border-b p-3">{operation.title}</td>
+										<td class="border-b p-3">{operation.source_iban}</td>
+										<td class="border-b p-3">{operation.destination_iban}</td>
+										<td
+											class="border-b p-3 font-mono {operation.destination_account_id ===
+											collection.bank_account_id
+												? 'text-green-600'
+												: 'text-red-600'}"
+										>
+											{operation.destination_account_id === collection.bank_account_id ? '+' : '-'}
+											{operation.amount.toLocaleString(undefined, {
+												style: 'currency',
+												currency: 'PLN'
+											})}
+										</td>
 										<td class="border-b p-3">{operation.operation_date || '-'}</td>
 									</tr>
 								{/each}
@@ -722,7 +730,7 @@
 						</table>
 					</div>
 				{:else}
-					<p>No children found.</p>
+					<p>No operations found.</p>
 				{/if}
 			</div>
 
