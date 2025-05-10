@@ -10,7 +10,7 @@
 			goto('/login');
 		} else {
 			try {
-        await getUserDetails();
+				await getUserDetails();
 				goto('/main');
 			} catch (e) {
 				console.error(e);
