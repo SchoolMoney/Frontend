@@ -702,8 +702,6 @@
 									<th class="pb-2 pr-2">Title</th>
 									<th class="pb-2 pr-2">Description</th>
 									<th class="pb-2 pr-2">Amount</th>
-									<th class="pb-2 pr-2">From</th>
-									<th class="pb-2">To</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -724,8 +722,6 @@
 												currency: 'PLN'
 											})}
 										</td>
-										<td class="border-b p-3">{operation.source_iban}</td>
-										<td class="border-b p-3">{operation.destination_iban}</td>
 									</tr>
 								{/each}
 							</tbody>
