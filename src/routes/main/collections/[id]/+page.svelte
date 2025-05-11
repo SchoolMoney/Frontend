@@ -700,17 +700,18 @@
 								<tr class="bg-gray-800">
 									<th class="pb-2 pr-2">Date</th>
 									<th class="pb-2 pr-2">Title</th>
+									<th class="pb-2 pr-2">Description</th>
 									<th class="pb-2 pr-2">Amount</th>
-									<th class="pb-2 pr-2">From</th>
-									<th class="pb-2">To</th>
+									<!-- <th class="pb-2 pr-2">From</th>
+									<th class="pb-2">To</th> -->
 								</tr>
 							</thead>
 							<tbody>
 								{#each operations as operation}
 									<tr>
+										<td class="border-b p-3">{operation.operation_date || '-'}</td>
 										<td class="border-b p-3">{operation.title}</td>
-										<td class="border-b p-3">{operation.source_iban}</td>
-										<td class="border-b p-3">{operation.destination_iban}</td>
+										<td class="border-b p-3">{operation.description}</td>
 										<td
 											class="border-b p-3 font-mono {operation.destination_account_id ===
 											collection.bank_account_id
@@ -723,7 +724,8 @@
 												currency: 'PLN'
 											})}
 										</td>
-										<td class="border-b p-3">{operation.operation_date || '-'}</td>
+										<!-- <td class="border-b p-3">{operation.source_iban}</td>
+										<td class="border-b p-3">{operation.destination_iban}</td> -->
 									</tr>
 								{/each}
 							</tbody>
