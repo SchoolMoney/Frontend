@@ -23,6 +23,7 @@
 	import { showToast } from '$lib/stores/toast';
 	import WithdrawMoney from './WithdrawMoney.svelte';
 	import { getFinancialReport } from '$lib/api/report_service';
+	import type { BankAccount } from '$lib/models/bank_account';
 
 	let collection: Collection = {
 		id: 0,
@@ -49,6 +50,12 @@
 	let isCreateMode = false;
 
 	var openWithdrawDialog = false;
+	var collectionBankAccount: BankAccount = {
+		id: 0,
+		balance: 0,
+		is_locked: false,
+		account_number: ''
+	};
 
 	let isEditMode = false;
 	let originalCollection = null;
@@ -68,8 +75,8 @@
 	let financialReportData = null;
 
 	$: numberOfChildrenPaid = children?.filter((child) => child.operation === 1).length;
-	$: collectedMoney = collection.price * numberOfChildrenPaid;
 	$: withdrawnMoney = collection.withdrawn_money;
+	$: collectedMoney = (collectionBankAccount.balance ?? 0) + (collection.withdrawn_money ?? 0);
 
 	onMount(async () => {
 		isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
@@ -114,7 +121,8 @@
 		children = data.children;
 		documents = data.documents;
 		requester = data.requester;
-    operations = data.operations;
+		operations = data.operations;
+		collectionBankAccount = data.bank_account_details;
 	}
 
 	function startEditing() {
@@ -160,7 +168,7 @@
 	async function payForChild(childId: number) {
 		try {
 			await api_middleware.put(`/api/collection/${collection.id}/pay/${childId}`, {});
-      await fetchData();
+			await fetchData();
 		} catch (e) {
 			showToast('error', `${(e as Error).message}`);
 		}
@@ -169,7 +177,7 @@
 	async function unsubscribeChild(childId: number) {
 		try {
 			await api_middleware.put(`/api/collection/${collection.id}/unsubscribe/${childId}`, {});
-      await fetchData();
+			await fetchData();
 		} catch (e) {
 			showToast('error', `${(e as Error).message}`);
 		}
@@ -178,7 +186,7 @@
 	async function restoreChild(childId: number) {
 		try {
 			await api_middleware.put(`/api/collection/${collection.id}/restore/${childId}`, {});
-      await fetchData();
+			await fetchData();
 		} catch (e) {
 			showToast('error', `${(e as Error).message}`);
 		}
@@ -186,7 +194,7 @@
 	async function refundChild(childId: number) {
 		try {
 			await api_middleware.put(`/api/collection/${collection.id}/refund/${childId}`, {});
-      await fetchData();
+			await fetchData();
 		} catch (e) {
 			showToast('error', `${(e as Error).message}`);
 		}
@@ -465,7 +473,9 @@
 		<!-- Collection View/Edit Mode -->
 		<div class="mx-auto max-w-6xl p-6">
 			<!-- Collection Details Section -->
-			<div class={cardVariants.get(collection.status) + ' mb-8 rounded-lg p-6 shadow-md bg-muted/50'}>
+			<div
+				class={cardVariants.get(collection.status) + ' mb-8 rounded-lg bg-muted/50 p-6 shadow-md'}
+			>
 				{#if isEditMode}
 					<!-- Edit Mode Header -->
 					<form on:submit|preventDefault={save} class="space-y-4">
@@ -555,7 +565,7 @@
 								<Button
 									on:click={() => {
 										openWithdrawDialog = true;
-									}}>Withdraw</Button
+									}}>Collection's bank account</Button
 								>
 								<Button variant="destructive" on:click={cancelCollection}>Cancel collection</Button>
 							{/if}
@@ -689,7 +699,7 @@
 					<p>No children found.</p>
 				{/if}
 			</div>
-      
+
 			<div class="mb-8 rounded-lg bg-muted/50 p-6 shadow-md">
 				<h3 class="mb-4 text-xl font-bold">Operations</h3>
 
@@ -967,8 +977,9 @@
 		operation="Withdraw"
 		bankAccountId={collection.bank_account_id}
 		availableMoney={collectedMoney - collection.withdrawn_money}
-		onComplete={(val: number) => {
-			withdrawnMoney = Number(withdrawnMoney) + Number(val);
+		onComplete={async (val: number) => {
+			// withdrawnMoney = Number(withdrawnMoney) + Number(val);
+			await fetchData();
 		}}
 	/>
 {/if}
