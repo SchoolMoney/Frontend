@@ -26,13 +26,20 @@
 	let selectedConversation: Conversation | null = null;
 	let messages: Message[] = [];
 	let newMessageContent = '';
-	let session: any = {};
+
+	interface SessionData {
+		user_id: number;
+		[key: string]: unknown;
+	}
+
+	let session: SessionData = { user_id: 0 };
+
 	let userId: number | null = null;
 	let isCreatingConversation = false;
 	let newConversationTitle = '';
 	let allParents: Parent[] = [];
 	let currentUser: CurrentUser | null = null;
-	let selectedParticipant = '';
+	let selectedParticipant: string | number = ''; // Fix for type error
 	let messagesContainer: HTMLElement;
 	let refreshInterval: ReturnType<typeof setInterval>;
 
@@ -100,14 +107,17 @@
 
 	async function fetchUnreadCountForConversation(conversationId: string) {
 		try {
-			const unreadResponse = await api_middleware.get(`/api/chat/conversations/${conversationId}/unread_count`);
-			if (unreadResponse && typeof unreadResponse === 'number') {
-				globalUnreadCounts.update(counts => {
-					const updatedCounts = { ...counts };
-					updatedCounts[conversationId] = unreadResponse;
-					return updatedCounts;
-				});
-			}
+			const response = await api_middleware.get(`/api/chat/conversations/${conversationId}/unread_count`);
+			// Handle the response format from the backend: {"unread_count": number}
+			const unreadCount = response && typeof response === 'object' && 'unread_count' in response
+				? response.unread_count
+				: (typeof response === 'number' ? response : 0);
+
+			globalUnreadCounts.update(counts => {
+				const updatedCounts = { ...counts };
+				updatedCounts[conversationId] = unreadCount;
+				return updatedCounts;
+			});
 		} catch (error) {
 			console.error(`Error fetching unread count for conversation ${conversationId}:`, error);
 		}
@@ -186,6 +196,9 @@
 	}
 
 	async function selectConversation(conversation: Conversation) {
+		// Fix for the bug: Only enter chat view when actually selecting a conversation
+		enterChatView();
+
 		globalUnreadCounts.update(counts => {
 			const updatedCounts = { ...counts };
 			updatedCounts[conversation.id] = 0;
@@ -238,10 +251,11 @@
 		const success = wsConn.send(messageData);
 
 		if (success) {
-			const tempMessage = {
+			// Fix for the temp message type error
+			const tempMessage: Message = {
 				id: tempId,
 				conversation_id: selectedConversation.id,
-				sender_id: userId,
+				sender_id: userId as number, // Cast to number as we know it's not null in this context
 				content: newMessageContent,
 				message_type: 'text',
 				created_at: new Date().toISOString(),
@@ -282,7 +296,7 @@
 						title = `${selectedParent.first_name} ${selectedParent.last_name}`;
 					}
 				} else {
-					title = "New Conversation";
+					title = 'New Conversation';
 				}
 			}
 
@@ -317,7 +331,9 @@
 		session = getSessionData();
 		userId = session.user_id;
 
-		enterChatView();
+		// Fix for the bug: Don't enter chat view on page load/refresh
+		// enterChatView() removed from here and moved to selectConversation()
+
 		Promise.all([
 			loadParents(),
 			loadCurrentUser()
@@ -409,7 +425,8 @@
 									{/if}
 								{/if}
 							</div>
-							<div class={`p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100 text-black'}`}>
+							<div
+								class={`p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100 text-black'}`}>
 								<div class="break-words break-all whitespace-pre-wrap">{message.content}</div>
 								<div class="text-xs mt-1 text-right">
 									{new Date(message.created_at).toLocaleTimeString()}
@@ -427,11 +444,11 @@
 			<!-- Message input -->
 			<div class="p-4 border-t">
 				<form on:submit|preventDefault={sendMessage} class="flex gap-2">
-          <Input
-            required
-            bind:value={newMessageContent}
-            placeholder="Type a message..."
-          />
+					<Input
+						required
+						bind:value={newMessageContent}
+						placeholder="Type a message..."
+					/>
 					<button
 						type="submit"
 						class="px-4 py-2 bg-primary text-white rounded-md disabled:opacity-50"
@@ -457,34 +474,35 @@
 
 			<form on:submit|preventDefault={createConversation} class="space-y-4">
 				<div>
-          <Label for="title">Title</Label>
-          <Input
-            required
-            id="title"
-            bind:value={newConversationTitle}
-            placeholder="Enter conservation title"
-          />
+					<Label for="title">Title</Label>
+					<Input
+						required
+						id="title"
+						bind:value={newConversationTitle}
+						placeholder="Enter conservation title"
+					/>
 					<p class="text-xs text-gray-500 mt-1">
 						If no title is provided, participant name will be used
 					</p>
 				</div>
 
 				<div>
-          <Select.Root
-            onSelectedChange={(v) => {
-              selectedParticipant = v?.value ?? 0;
-            }}>
-            <Select.Trigger>
-              <Select.Value placeholder="Select class" />
-            </Select.Trigger>
-            <Select.Content>
-              {#each allParents.filter(parent =>
-							parent.id !== currentUser?.id
-						) as parent (parent.id)}
-                <Select.Item value={parent.id}>{parent.first_name} {parent.last_name}</Select.Item>
-              {/each}
-            </Select.Content>
-          </Select.Root>
+					<Select.Root
+						onSelectedChange={(v) => {
+							// Convert the value to a number or fallback to empty string
+							selectedParticipant = v?.value ? Number(v.value) : '';
+						}}>
+						<Select.Trigger>
+							<Select.Value placeholder="Select class" />
+						</Select.Trigger>
+						<Select.Content>
+							{#each allParents.filter(parent =>
+								parent.id !== currentUser?.id
+							) as parent (parent.id)}
+								<Select.Item value={parent.id}>{parent.first_name} {parent.last_name}</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
 					<p class="text-xs text-gray-500 mt-1">
 						{#if currentUser}Your user will be added automatically.{/if}
 					</p>
