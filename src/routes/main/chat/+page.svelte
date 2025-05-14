@@ -26,8 +26,8 @@
 	let selectedConversation: Conversation | null = null;
 	let messages: Message[] = [];
 	let newMessageContent = '';
-	let session = getSessionData();
-	let userId = session.user_id;
+	let session: any = {};
+	let userId: number | null = null;
 	let isCreatingConversation = false;
 	let newConversationTitle = '';
 	let allParents: Parent[] = [];
@@ -314,6 +314,9 @@
 	}
 
 	onMount(() => {
+		session = getSessionData();
+		userId = session.user_id;
+
 		enterChatView();
 		Promise.all([
 			loadParents(),
@@ -406,7 +409,7 @@
 									{/if}
 								{/if}
 							</div>
-							<div class={`p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100'}`}>
+							<div class={`p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100 text-black'}`}>
 								<div class="break-words break-all whitespace-pre-wrap">{message.content}</div>
 								<div class="text-xs mt-1 text-right">
 									{new Date(message.created_at).toLocaleTimeString()}
