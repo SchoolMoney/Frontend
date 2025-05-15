@@ -156,7 +156,7 @@
 </script>
 
 <div class={`fixed inset-0 flex items-center justify-center ${open ? 'block' : 'hidden'}`}>
-	<div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg bg-gray-900 p-6 shadow-lg">
+	<div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg bg-gray-900 p-6 shadow-lg backdrop-blur-sm">
 		<!-- Header with close button -->
 		<div class="flex items-center justify-between mb-6">
 			<h2 class="text-2xl font-bold">Financial Report</h2>

@@ -445,13 +445,13 @@
 				</div>
 			</div>
 			<div>
-				<Label>Price*</Label>
+				<Label>Price per Child*</Label>
 				<Input
 					required
 					type="number"
 					min="1"
 					bind:value={collection.price}
-					placeholder="Enter price"
+					placeholder="Enter price per child"
 				></Input>
 			</div>
 			<div>
@@ -593,7 +593,7 @@
 							</div>
 						</div>
 						<div>
-							<Label>Price</Label>
+							<Label>Price per Child</Label>
 							<div>{collection.price} PLN</div>
 						</div>
 						<div>

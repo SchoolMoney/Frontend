@@ -11,6 +11,8 @@ services:
       - Backend
 
   Backend:
+    profiles:
+      - backend
     build: https://github.com/SchoolMoney/Backend.git
     image: school-money/backend
     container_name: SchoolMoneyBackend
@@ -27,6 +29,8 @@ services:
       - MONGODB_DB_NAME=chat_db
 
   SQL:
+    profiles:
+      - backend
     container_name: SchoolMoneyPostgres
     image: postgres:16.2
     restart: unless-stopped
@@ -45,6 +49,8 @@ services:
       timeout: 10s
 
   Redis:
+    profiles:
+      - backend
     container_name: SchoolMoneyRedis
     image: redis/redis-stack
     restart: unless-stopped
@@ -54,6 +60,8 @@ services:
 
 
   MongoDB:
+    profiles:
+      - backend
     container_name: SchoolMoneyMongo
     image: mongo:latest
     restart: unless-stopped

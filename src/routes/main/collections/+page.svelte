@@ -193,8 +193,8 @@
     </form>
   </div>
   
-  <div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-8 xl:grid-cols-4">
-    {#if collections.length > 0}
+  {#if collections.length > 0}
+    <div class="grid flex-1 items-start gap-4 md:gap-8 lg:grid-cols-8 xl:grid-cols-4">
       {#each collections as collection}
         <Card.Root class={cardVariants.get(collection.status)}>
           <Card.Header class="flex-row">
@@ -221,8 +221,8 @@
           </Card.Footer>
         </Card.Root>
       {/each}
-    {:else}
-      <div class="text-muted-foreground text-opacity-50 text-xl text-center col-start-4 col-end-6 mt-20">No collections found.</div>
-    {/if}
-  </div>
+    </div>
+  {:else}
+    <div class="text-muted-foreground text-opacity-50 text-xl text-center mt-20">No collections found.</div>
+  {/if}
 </div>

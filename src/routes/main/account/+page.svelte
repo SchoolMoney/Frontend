@@ -48,7 +48,7 @@
 			...(await getUserParentProfile())
 		};
 		bankAccount = await getUserBankAccount();
-		bankAccountOperations = await getBankAccountOperations(bankAccount.id);
+		bankAccountOperations = await getBankAccountOperations(bankAccount.id) ?? [];
 	});
 
 	let selectedTab: 'identity' | 'password' = 'identity';
