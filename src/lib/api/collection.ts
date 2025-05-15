@@ -63,7 +63,7 @@ export async function getCollections(params: FormattedGetCollectionsParams): Pro
     if (params?.start_date_to) queryParams.append('start_date_to', params.start_date_to);
     if (params?.end_date_from) queryParams.append('end_date_from', params.end_date_from);
     if (params?.end_date_to) queryParams.append('end_date_to', params.end_date_to);
-    if (params?.status !== undefined) queryParams.append('status', params.status.toString());
+    if (params?.status !== undefined) queryParams.append('collection_status', params.status.toString());
 
     const response = await api_middleware.get(`/api/collection?${queryParams.toString()}`);
     return response;
