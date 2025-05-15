@@ -1,0 +1,70 @@
+services:
+  Frontend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: school-money/frontend
+    container_name: SchoolMoneyFrontend
+    ports:
+      - "5173:3000"
+    depends_on:
+      - Backend
+
+  Backend:
+    build: https://github.com/SchoolMoney/Backend.git
+    image: school-money/backend
+    container_name: SchoolMoneyBackend
+    ports:
+      - "8000:8000"
+    depends_on:
+      SQL:
+        condition: service_healthy
+    environment:
+      - DB_ADDRESS=SQL
+      - REDIS_HOST=redis
+      - MONGODB_HOST=MongoDB
+      - MONGODB_PORT=27017
+      - MONGODB_DB_NAME=chat_db
+
+  SQL:
+    container_name: SchoolMoneyPostgres
+    image: postgres:16.2
+    restart: unless-stopped
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  Redis:
+    container_name: SchoolMoneyRedis
+    image: redis/redis-stack
+    restart: unless-stopped
+    hostname: redis
+    ports:
+      - "6379:6379"
+
+
+  MongoDB:
+    container_name: SchoolMoneyMongo
+    image: mongo:latest
+    restart: unless-stopped
+    hostname: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=chat_db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
