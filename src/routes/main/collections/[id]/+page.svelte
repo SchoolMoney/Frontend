@@ -122,7 +122,9 @@
 		documents = data.documents;
 		requester = data.requester;
 		operations = data.operations;
-		operations.sort((a, b) => new Date(b.operation_date).getTime() - new Date(a.operation_date).getTime());
+		if (operations) {
+			operations.sort((a, b) => new Date(b.operation_date).getTime() - new Date(a.operation_date).getTime());
+		}
 		collectionBankAccount = data.bank_account_details;
 	}
 
