@@ -115,12 +115,14 @@
 		}
 
 		// Generate the safe filename for download
-		const safeFilename = info.name.replace(/[^\w\s-]/g, '');
+		const safeFilename = info?.name ? info.name.replace(/[^\w\s-]/g, '') : 'report';
 		doc.save(`class-financial-report-${safeFilename}-${new Date().toISOString().slice(0, 10)}.pdf`);
 	}
 </script>
 
-<div class={`fixed inset-0 flex items-center justify-center ${open ? 'block' : 'hidden'}`}>
+<!-- Modal Overlay -->
+<div class={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${open ? 'flex' : 'hidden'}`}>
+	<!-- Modal Content -->
 	<div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-lg p-6 shadow-lg bg-gray-900">
 		<!-- Header with close button -->
 		<div class="flex items-center justify-between mb-6">

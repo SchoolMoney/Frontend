@@ -1,14 +1,14 @@
 services:
-  Frontend:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    image: school-money/frontend
-    container_name: SchoolMoneyFrontend
-    ports:
-      - "5173:3000"
-    depends_on:
-      - Backend
+  # Frontend:
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: school-money/frontend
+  #   container_name: SchoolMoneyFrontend
+  #   ports:
+  #     - "5173:3000"
+  #   depends_on:
+  #     - Backend
 
   Backend:
     profiles:
