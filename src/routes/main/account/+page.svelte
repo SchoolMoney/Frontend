@@ -283,7 +283,7 @@
 								{#each bankAccountOperations?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) as operation}
 									<tr class="border-b text-sm">
 										<td class="py-2 pr-2"
-											>{new Date(operation.operation_date).toLocaleDateString()}</td
+											>{new Date(operation.operation_date).toLocaleDateString()} {new Date(operation.operation_date).toLocaleTimeString()}</td
 										>
 										<td class="py-2 pr-2">{operation.description}</td>
 										<td

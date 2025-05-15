@@ -3,6 +3,7 @@ export type BankAccount = {
   account_number: string;
   is_locked?: boolean;
   balance?: number;
+  withdrawn_money?: number;
 }
 
 export type BankAccountOperation = {

@@ -75,7 +75,7 @@
 	let financialReportData = null;
 
 	$: numberOfChildrenPaid = children?.filter((child) => child.operation === 1).length;
-	$: withdrawnMoney = collection.withdrawn_money;
+	$: withdrawnMoney = collectionBankAccount.withdrawn_money;
 	$: collectedMoney = (collectionBankAccount.balance ?? 0);
 
 	onMount(async () => {
@@ -122,6 +122,7 @@
 		documents = data.documents;
 		requester = data.requester;
 		operations = data.operations;
+		operations.sort((a, b) => new Date(b.operation_date).getTime() - new Date(a.operation_date).getTime());
 		collectionBankAccount = data.bank_account_details;
 	}
 
@@ -721,7 +722,7 @@
 							<tbody>
 								{#each operations as operation}
 									<tr>
-										<td class="border-b p-3">{operation.operation_date || '-'}</td>
+										<td class="border-b p-3">{`${new Date(operation.operation_date).toLocaleDateString()} ${new Date(operation.operation_date).toLocaleTimeString()}` || '-'}</td>
 										<td class="border-b p-3">{operation.title}</td>
 										<td class="border-b p-3">{operation.description}</td>
 										<td
