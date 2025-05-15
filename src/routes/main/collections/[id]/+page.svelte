@@ -76,7 +76,7 @@
 
 	$: numberOfChildrenPaid = children?.filter((child) => child.operation === 1).length;
 	$: withdrawnMoney = collection.withdrawn_money;
-	$: collectedMoney = (collectionBankAccount.balance ?? 0) + (collection.withdrawn_money ?? 0);
+	$: collectedMoney = (collectionBankAccount.balance ?? 0);
 
 	onMount(async () => {
 		isAdmin = getSessionData().privilege === Privilege.ADMIN_USER;
@@ -600,12 +600,16 @@
 							<Label>Start Date</Label>
 							<div>{formatDateToYYYYMMDD(collection.start_date)}</div>
 						</div>
-						<div>
-							<Label>Collected Money</Label>
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<Label>Money in collection</Label>
 							<div>
-								{collectedMoney} PLN {withdrawnMoney === 0
-									? ''
-									: `(withdrawn: ${withdrawnMoney} PLN)`}
+								{collectedMoney} PLN
+							</div>
+							<Label>Withdrawn from collection</Label>
+							<div>
+								{withdrawnMoney === 0
+								? '0 PLN'
+								: `${withdrawnMoney} PLN`}
 							</div>
 						</div>
 						<div>
@@ -895,7 +899,6 @@
 				{/if}
 			</div>
 
-			<!-- Dialog wyboru pliku -->
 			{#if showDocumentDialog}
 				<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 					<div class="w-full max-w-md rounded-lg bg-muted/50 p-6 shadow-lg">
