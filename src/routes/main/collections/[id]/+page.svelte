@@ -979,7 +979,7 @@
 		bind:open={openWithdrawDialog}
 		operation="Withdraw"
 		bankAccountId={collection.bank_account_id}
-		availableMoney={collectedMoney - collection.withdrawn_money}
+		availableMoney={collectedMoney }
 		onComplete={async (val: number) => {
 			// withdrawnMoney = Number(withdrawnMoney) + Number(val);
 			await fetchData();
