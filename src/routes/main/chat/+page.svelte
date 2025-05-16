@@ -175,6 +175,10 @@
 			currentUser = response;
 			if (currentUser) {
 				userId = currentUser.id;
+				// Force re-render of messages with the correct userId
+				if (messages.length > 0) {
+					messages = [...messages];
+				}
 			}
 		} catch (error) {
 			console.error('Error loading current user:', error);
@@ -240,22 +244,28 @@
 			return;
 		}
 
+		// Ensure userId is a number and log it for debugging
+		const currentUserId = Number(userId);
+		console.log('Sending message with sender_id:', currentUserId);
+
 		const messageData = {
 			conversation_id: selectedConversation.id,
 			content: newMessageContent,
-			message_type: 'text'
+			message_type: 'text',
+			sender_id: currentUserId // Make sure this is a number
 		};
 
-		const tempId = 'temp-' + Date.now();
+		// Log the actual message payload
+		console.log('Message payload:', JSON.stringify(messageData));
 
+		const tempId = 'temp-' + Date.now();
 		const success = wsConn.send(messageData);
 
 		if (success) {
-			// Fix for the temp message type error
 			const tempMessage: Message = {
 				id: tempId,
 				conversation_id: selectedConversation.id,
-				sender_id: userId as number, // Cast to number as we know it's not null in this context
+				sender_id: currentUserId, // Use the same value here
 				content: newMessageContent,
 				message_type: 'text',
 				created_at: new Date().toISOString(),
@@ -327,19 +337,18 @@
 		}
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		session = getSessionData();
+		// Set initial user ID from session
 		userId = session.user_id;
 
-		// Fix for the bug: Don't enter chat view on page load/refresh
-		// enterChatView() removed from here and moved to selectConversation()
-
-		Promise.all([
+		// Make sure to await these to fully establish identity before loading messages
+		await Promise.all([
 			loadParents(),
-			loadCurrentUser()
-		]).then(() => {
-			loadConversations();
-		});
+			loadCurrentUser() // This will update userId more reliably
+		]);
+
+		await loadConversations();
 
 		const wsConn = $wsConnection;
 		if (!wsConn || !wsConn.isConnected()) {
@@ -407,17 +416,16 @@
 				<h3 class="text-lg font-semibold">{selectedConversation.title}</h3>
 			</div>
 
-			<!-- Messages -->
 			<!-- Messages section -->
 			<div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container" bind:this={messagesContainer}>
 				{#each messages as message (message.id)}
-					<div class={`flex ${message.sender_id === userId ? 'justify-end' : 'justify-start'}`}>
+					<div class={`flex ${Number(message.sender_id) === Number(userId) ? 'justify-end' : 'justify-start'}`}>
 						<div class="max-w-[70%]">
 							<div class="text-xs mb-1 ml-1">
-								{#if message.sender_id === userId}
+								{#if Number(message.sender_id) === Number(userId)}
 									You
 								{:else}
-									{@const sender = getParentById(message.sender_id)}
+									{@const sender = getParentById(Number(message.sender_id))}
 									{#if sender}
 										{sender.first_name} {sender.last_name}
 									{:else}
@@ -425,8 +433,7 @@
 									{/if}
 								{/if}
 							</div>
-							<div
-								class={`p-3 rounded-lg ${message.sender_id === userId ? 'bg-primary text-white' : 'bg-gray-100 text-black'}`}>
+							<div class={`p-3 rounded-lg ${Number(message.sender_id) === Number(userId) ? 'bg-primary text-white' : 'bg-gray-100 text-black'}`}>
 								<div class="break-words break-all whitespace-pre-wrap">{message.content}</div>
 								<div class="text-xs mt-1 text-right">
 									{new Date(message.created_at).toLocaleTimeString()}
@@ -440,7 +447,6 @@
 					<div class="text-center text-gray-500 py-8">No messages yet</div>
 				{/if}
 			</div>
-
 			<!-- Message input -->
 			<div class="p-4 border-t">
 				<form on:submit|preventDefault={sendMessage} class="flex gap-2">
