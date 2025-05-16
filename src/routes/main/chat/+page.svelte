@@ -499,7 +499,7 @@
 							selectedParticipant = v?.value ? Number(v.value) : '';
 						}}>
 						<Select.Trigger>
-							<Select.Value placeholder="Select class" />
+							<Select.Value placeholder="Select parent" />
 						</Select.Trigger>
 						<Select.Content>
 							{#each allParents.filter(parent =>
