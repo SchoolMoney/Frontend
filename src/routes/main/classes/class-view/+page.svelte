@@ -12,9 +12,9 @@
 		CardContent,
 		CardFooter
 	} from '$lib/components/ui/card';
-	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
+	import * as Alert from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
-	import { CircleX, Files, HandCoins, Calendar, Replace, ClipboardCopy } from 'lucide-svelte';
+	import { CircleX, Files, HandCoins, Calendar, Replace, CircleAlert } from 'lucide-svelte';
 	import { cardVariants, CollectionStatus, statusLabels } from '$lib/models/collection';
 	import { goto } from '$app/navigation';
 	import { GroupRole, groupRoleLabels, type ClassView } from '$lib/models/class_group';
@@ -45,6 +45,7 @@
   let selectedParentIdToSwitchToCashier = 0;
 	let isClassReportModalOpen = false;
 	let classReportData: ClassFinancialReport;
+  let error: string;
 
 
 	async function handleStatusChange(status: CollectionStatus) {
@@ -89,7 +90,15 @@
 	}
 
 	function handleAddCollection() {
-		goToCollection(0);
+    console.log(classViewData);
+    if (classViewData?.children.length) {
+      goToCollection(0);
+    } else {
+      error = 'No children found in this class group. Please add children to the class group before creating a collection.';
+      setTimeout(() => {
+        error = '';
+      }, 5000);
+    }
 	}
 
 	function handleDetailsCollection(collection_id: number) {
@@ -195,11 +204,11 @@
 <div class="min-h-dvh">
 	{#if showErrorPopup}
 		<div class="fixed right-4 top-4 z-50 max-w-md" transition:fly={{ y: -30, duration: 300 }}>
-			<Alert variant="destructive">
+			<Alert.Root variant="destructive">
 				<CircleX class="h-4 w-4" />
-				<AlertTitle>Error</AlertTitle>
-				<AlertDescription>{errorMessage}</AlertDescription>
-			</Alert>
+				<Alert.Title>Error</Alert.Title>
+				<Alert.Description>{errorMessage}</Alert.Description>
+			</Alert.Root>
 		</div>
 	{/if}
 
@@ -455,4 +464,13 @@
 			</div>
 		</div>
 	{/if}
+
+  {#if error}
+    <div class="absolute top-full mt-1">
+      <Alert.Root variant="destructive">
+        <CircleAlert class="h-4 w-4" />
+        <Alert.Title>{error}</Alert.Title>
+      </Alert.Root>
+    </div>
+  {/if}
 </div>

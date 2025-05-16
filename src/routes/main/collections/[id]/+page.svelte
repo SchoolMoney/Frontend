@@ -7,7 +7,6 @@
 	import type { Collection } from '$lib/models/collection';
 	import {
 		cardVariants,
-		collectionOperationTypeLabels,
 		CollectionStatus,
 		statusLabels,
 		statusTextColors
