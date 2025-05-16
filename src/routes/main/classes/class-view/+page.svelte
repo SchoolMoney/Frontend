@@ -94,10 +94,7 @@
     if (classViewData?.children.length) {
       goToCollection(0);
     } else {
-      error = 'No children found in this class group. Please add children to the class group before creating a collection.';
-      setTimeout(() => {
-        error = '';
-      }, 5000);
+      showToast('error', `No children found in this class group. Please add children to the class group before creating a collection.`);
     }
 	}
 
@@ -464,13 +461,4 @@
 			</div>
 		</div>
 	{/if}
-
-  {#if error}
-    <div class="absolute top-full mt-1">
-      <Alert.Root variant="destructive">
-        <CircleAlert class="h-4 w-4" />
-        <Alert.Title>{error}</Alert.Title>
-      </Alert.Root>
-    </div>
-  {/if}
 </div>
