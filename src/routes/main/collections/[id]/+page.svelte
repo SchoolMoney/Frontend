@@ -570,7 +570,9 @@
 										openWithdrawDialog = true;
 									}}>Collection's bank account</Button
 								>
-								<Button variant="destructive" on:click={cancelCollection}>Cancel collection</Button>
+                {#if collection.status === CollectionStatus.OPEN}
+								  <Button variant="destructive" on:click={cancelCollection}>Cancel collection</Button>
+                {/if}
 							{/if}
 							{#if (isAdmin || (requester && requester.role === 2)) && collection.status != CollectionStatus.BLOCKED}
 								<Button variant="outline" on:click={startEditing}>Edit</Button>
@@ -750,7 +752,7 @@
 			</div>
 
 			<!-- Documents Section -->
-			<div class="rounded-lg bg-muted/50 p-6 shadow-md">
+			<div class="rounded-lg p-6 shadow-md bg-muted/50">
 				<div class="mb-4 flex items-center justify-between">
 					<h3 class="text-xl font-bold">Documents</h3>
 					{#if collection.status != CollectionStatus.BLOCKED}
@@ -903,8 +905,8 @@
 			</div>
 
 			{#if showDocumentDialog}
-				<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-					<div class="w-full max-w-md rounded-lg bg-muted/50 p-6 shadow-lg">
+				<div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+					<div class="w-full max-w-md rounded-lg p-6 shadow-lg bg-gray-900">
 						<h3 class="mb-4 text-xl font-bold">Add Document</h3>
 
 						<form on:submit|preventDefault={uploadDocument} class="space-y-4">
